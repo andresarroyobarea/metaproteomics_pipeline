@@ -15,16 +15,15 @@
 #   - cond_list      : named list of sample IDs by condition
 # --------------------------------------------------------------------------------------------------------
 
-
 # -----------------------------
 # Metadata
 # -----------------------------
+# TODO: Path to specific metaproteomic metadata file.
 metadata <- read.csv(
   here(path_metadata, "metaproteomics_MM_metadata.csv"), 
   header = T,
   stringsAsFactors = FALSE
   )
-
 
 stopifnot(
   all(c("sample_id", "condition", "include") %in% colnames(metadata))
@@ -78,11 +77,23 @@ if (length(removed_conditions) > 0) {
 
 samples <- metadata_filt$sample_id
 
+
 # 3. List with samples by condition.
 cond_list <- metadata_filt %>%
   group_by(condition) %>%
   summarise(sample_ids = list(sample_id)) %>%
   deframe()
+
+# Summary
+message("Configuration summary")
+message("Included samples (n = ", length(samples), ")")
+message("Samples by condition:")
+for (cond in names(cond_list)) {
+  message(
+    "  - ", cond, " (n = ", length(cond_list[[cond]]), "): ",
+    paste(cond_list[[cond]], collapse = ", ")
+  )
+}
 
 # -----------------------------
 # Outputs senior-friendly
