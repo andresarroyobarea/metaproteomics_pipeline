@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------------------------
-# Script: 00_setup.R
+# Script: 00_setup_environment.R
 # Project: Metaproteomics MM Data Analasys - Enviroment set-up.
 # Author: Andrés Arroyo Barea
 # Date: 2026-01-08
@@ -21,7 +21,7 @@ set.seed(1234)
 ## Libraries
 pacman::p_load(
   # Loading and data manipulation.
-  readr, openxlsx, janitor, naniar, skimr, reshape2, dplyr, tidyverse, forcats, vroom,
+  readr, openxlsx, janitor, naniar, skimr, reshape2, dplyr, tidyverse, forcats, vroom, here,
   
   # Omics and microbiomics data analysis.
   phyloseq, microbiome, MSnSet.utils, MSnbase, microViz, 
@@ -39,7 +39,8 @@ pacman::p_load(
   ggstatsplot, ggVennDiagram,
   
   # Reports
-  gtsummary)
+  gtsummary
+  )
 
 ### 3. Paths (relative to project root) ------------------------------------------------------------------
 # Data
@@ -54,14 +55,16 @@ path_metadata <- here("metadata", "run_2025")
 path_results <- here("results")
 
 # Utility functions
-path_io <- here("code", "utils", "io.R")
-
+utils_files <- list.files(here("code", "utils"), pattern = "\\.R$", full.names = TRUE)
 
 ### 4. Source custom functions ----------------------------------------------------------------------------
-if (file.exists(path_io)) {
-  source(path_io)
-} else {
-  warning("io.R not found: projects functions unavailable.")
+if (length(utils_files) > 0) {
+  for (f in utils_files) {
+    message("Loading utils: ", basename(f))
+    source(f)
+    }
+  } else {
+  warning("No utils scripts found: project functions unavailable.")
 }
 
 ### 5. Global plotting options
@@ -83,3 +86,8 @@ palette_mm_status <- c(
   "NDMM" = "red",
   "RRMM" = "blueviolet"
  )
+
+# Current run
+# TODO: Evalute if create a config file
+current_run <- "run_2025"
+
