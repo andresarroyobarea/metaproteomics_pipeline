@@ -375,8 +375,7 @@ filter_by_min_prevalence <- function(
   df,
   cond_list,
   metric = metrics,
-  min_prop = 0.5,
-  prefix = "feature_min_prev"
+  min_prop = 0.5
 ) {
   
   # Check parameter entities
@@ -407,7 +406,7 @@ filter_by_min_prevalence <- function(
         "YES",
         "NO")
     
-    setNames(list(value),  paste0(cond, "_feature_min_prev_", metric))
+    setNames(list(value),  paste0("feature_min_prev_", metric))
     
   }) %>% unlist(recursive = FALSE)
 
@@ -495,6 +494,80 @@ filter_all_nothing <- function(
   
   return(all_noth_res)
 }
+
+# --------------------------------------------------------------------------------------------------------
+#' Build biological feature sets based on logical combinations of criteria.
+#'
+#' @description 
+#' This function generates new categorical variables ("sets") by combiniing
+#' multiple precomputed logical/boolean criteria using an AND logic.
+#' A feature is assigned to a set if and only if it satisfied **all**
+#' the conditions defined for that set.
+#' 
+#' The criteria themselves must already exist as logical (TRUE/FALSE)
+#' columns provided in the input dataframe. The definition of each set is
+#' provided externally via a named list, allowing flexible and scalable filtering
+#' strategies without hardcoding logic into the analysis pipeline.
+#' 
+#' @param df data.frame. 
+#'   Biological dataset in wide format (e.g. peptide- or protein-level table)
+#'   containing logical columns representing filtering criteria.
+#'    
+#' @param sets named list.
+#'   A named list where each element defines a feature set.
+#'   The name of each element is the name of the new variable to be created,
+#'   and its value is a character vector with the column names (criteria)
+#'   that must all be TRUE for a feature to belong to that set.
+#'@return
+#'   A data.frame identical to the input but augmented with one new factor
+#'   column per defined set.
+#' 
+#' @example
+#' feature_processed <- build_feature_sets(
+#'   df = peptides,
+#'   sets = peptide_sets,
+#' )
+#' 
+#' @examples
+#' peptide_sets <- list(
+#'   peptides_filtered = c(
+#'     "keep_human",
+#'     "keep_unique",
+#'     "keep_intensity",
+#'     "feature_min_prev_intens"
+#'   ),
+#'   NDMM_all_nothing = c(
+#'     "keep_human",
+#'     "keep_unique",
+#'     "keep_intensity",
+#'     "NDMM_all_nothing_intens"
+#'   )
+#' )
+#'
+#' peptides_processed <- build_sets(
+#'   df = peptides_processed,
+#'   set_defs = peptide_sets
+#' )
+#'
+#' @export
+#' # --------------------------------------------------------------------------------------------------------
+
+build_sets <- function(df, set_defs) {
+  
+  # Iterate over each set definition (one output variable per set)
+  for (set_name in names(set_defs)) {
+    
+    # Vector of column names defining the criteria for this set
+    cols <- set_defs[[set_name]]
+    
+    # A feature belongs to the set only if all criteria are TRUE
+    df[[set_name]] <- factor(
+      if_else(Reduce(`&`, lapply(cols, function(c) df[[c]])), "YES", "NO")
+    )
+  }
+  df
+}
+
 
 
 
