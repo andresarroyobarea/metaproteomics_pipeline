@@ -87,7 +87,28 @@ palette_mm_status <- c(
   "RRMM" = "blueviolet"
  )
 
+# Proteomics metrics
+metrics_by_level <- list(
+  peptide = c(
+    intens = "intensity",
+    max_intens = "max_lfq_intensity",
+    spc = "spectral_count"
+  ),
+  protein = c(
+    intens = "intensity",
+    max_intens = "max_lfq_intensity",
+    spc = "spectral_count",
+    uniq_spc = "unique_spectral_count",
+    total_spc = "total_spectral_count"
+  )
+)
+
+metrics_to_use <- c("intens", "spc")
+
+
 # Current run
 # TODO: Evalute if create a config file
 current_run <- "run_2025"
 
+
+                  
