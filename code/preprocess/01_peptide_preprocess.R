@@ -117,3 +117,8 @@ peptides_processed <- peptides_processed %>%
 # 9. Build final biological sets.
 # -----------------------------
 peptides_processed <- build_sets(peptides_processed, peptide_sets_defs)
+
+# -------------------------------------
+# 10. Export preprocessed peptide file
+# -------------------------------------
+write_metap_data(peptides_processed, state = "processed", run = current_run, level = "peptide")
