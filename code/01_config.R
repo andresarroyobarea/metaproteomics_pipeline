@@ -95,6 +95,31 @@ for (cond in names(cond_list)) {
   )
 }
 
+
+# 4. Filtering sets criteria
+peptide_sets_defs <- list(
+  peptides_core = c(
+    "keep_non_human",
+    "keep_unique",
+    "keep_intensity",
+    "keep_min_prev"
+  ),
+  NDMM_all_nothing = c(
+    "keep_non_human",
+    "keep_unique",
+    "keep_intensity",
+    "keep_all_nothing_NDMM"
+  ),
+  RRMM_all_nothing = c(
+    "keep_non_human",
+    "keep_unique",
+    "keep_intensity",
+    "keep_all_nothing_RRMM"
+  )
+)
+
+
+
 # -----------------------------
 # Outputs senior-friendly
 # -----------------------------
