@@ -105,6 +105,7 @@ metrics_by_level <- list(
 
 metrics_to_use <- c("intens", "spc")
 
+prev_threshold <- 0.5
 
 # Current run
 # TODO: Evalute if create a config file
