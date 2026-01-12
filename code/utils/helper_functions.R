@@ -330,11 +330,173 @@ count_presence_by_condition <- function(
       # Sum presence of each metric value in each condition.
       rowSums(df[, cols, drop = FALSE] > threshold, na.rm = T)
       
-    }) %>% setNames(paste0(cond, "_sum_", names(metrics)))
+    }) %>% setNames(paste0(cond, "_feature_prev_", names(metrics)))
     
   }) %>% unlist(recursive = FALSE)
   
   return(cond_metric_sums)
 
 }
+
+
+# --------------------------------------------------------------------------------------------------------
+#' Filter features by prevalence.
+#'
+#' Description
+#' 
+#' @param df data.frame. 
+#'    Biological dataset in wide format (e.g. peptide or protein table).
+#'    
+#' @param cond_list named list.
+#'    Each element corresponds to a biological condition and contins the sample
+#'    IDs associated with that condition (eg. list(NDMM = c("ID_100", "ID_203)))
+#'    
+#' @param metric character vector. 
+#'    Proteomics metric to use in the filtering process.
+#'
+#' @param min_prop numeric, default 0.5.
+#'    Minimum prevalence value to meet in each group to retain the feature.
+#' @return data.frame
+#'    The input dataset with additional variables for filtering criteria.
+#'    
+#' @examples
+#' 
+#' peptides <- filter_by_min_prevalence(
+#'   df = peptides,
+#'   cond_list = cond_list,
+#'   metrics = "intens",
+#'   min.prop = 0.5
+#' )
+#'
+#' @export
+#' # --------------------------------------------------------------------------------------------------------
+
+filter_by_min_prevalence <- function(
+  df,
+  cond_list,
+  metric = metrics,
+  min_prop = 0.5,
+  prefix = "feature_min_prev"
+) {
+  
+  # Check parameter entities
+  stopifnot(is.data.frame(df))
+  stopifnot(is.list(cond_list))
+  stopifnot(is.character(metric))
+  stopifnot(min_prop > 0 && min_prop < 1)
+  
+  # Evaluate the prevalence criteria per condition and create a flag to identify
+  # feature which meets the condition.
+  res <- lapply(metric, function(metric) {
+  
+    presence_suffix <- paste0("_feature_prev_", metric)
+    
+    value <- if_else(
+        rowSums(
+          sapply(names(cond_list), function(cond) {
+            
+            col <- paste0(cond, presence_suffix)
+            
+            if (!col %in% colnames(df)) {
+              stop("Column not found: ", col)
+            }
+            
+            df[[col]] >= ceiling(length(cond_list[[cond]]) * min_prop)
+          }) 
+        ) == length(cond_list), 
+        "YES",
+        "NO")
+    
+    setNames(list(value),  paste0(cond, "_feature_min_prev_", metric))
+    
+  }) %>% unlist(recursive = FALSE)
+
+}
+
+# --------------------------------------------------------------------------------------------------------
+#' Filter all/nothing features
+#'
+#' Description
+#' 
+#' @param df data.frame. 
+#'    Biological dataset in wide format (e.g. peptide or protein table).
+#'    
+#' @param cond_list named list.
+#'    Each element corresponds to a biological condition and contins the sample
+#'    IDs associated with that condition (eg. list(NDMM = c("ID_100", "ID_203)))
+#'    
+#' @param metric character vector. 
+#'    Proteomics metric to use in the filtering process.
+#'
+#' @param min_prop numeric, default 0.5.
+#'    Minimum prevalence value to meet in each group to retain the feature.
+
+#' @return data.frame
+#'    The input dataset with additional variables for filtering criteria.
+#'    
+#' @examples
+#' 
+#' peptides <- filter_all_nothing(
+#'   df = peptides,
+#'   cond_list = cond_list,
+#'   metrics = "intens",
+#'   min.prop = 0.5
+#' )
+#'
+#' @export
+#' # --------------------------------------------------------------------------------------------------------
+
+
+filter_all_nothing <- function(
+    df, 
+    cond_list, 
+    metric, 
+    min_prop = 0.5
+    ) {
+  
+  # Check parameter entities
+  stopifnot(is.data.frame(df))
+  stopifnot(is.list(cond_list))
+  stopifnot(is.character(metric))
+  stopifnot(min_prop > 0 && min_prop < 1)
+  
+  # Evaluate the prevalence criteria per condition and create a flag to identify
+  # feature which meets the condition.
+  
+  # Iterate per metric
+  all_noth_res <- lapply(metric, function(met) {
+    
+    # Iterate per condition
+    sapply(names(cond_list), function(cond) {
+      
+      # Current condition variable
+      cond_col <- paste0(cond, "_feature_prev_", met)
+      if (!cond_col %in% colnames(df)) 
+        stop("Column not found: ", cond_col)
+      
+      # Remaining condition/s variable/s
+      other_cols <- setdiff(paste0(names(cond_list), "_feature_prev_", met), cond_col)
+      
+      # "all/nothing" checks.
+      if_else(
+        df[[cond_col]] >= ceiling(length(cond_list[[cond]]) * min_prop) &
+          rowSums(df[other_cols] != 0) == 0,
+        "YES",
+        "NO"
+      )
+      
+    }, simplify = FALSE) %>% 
+      
+      # Nombramos cada vector con la convención deseada
+      setNames(paste0(names(cond_list), "_all_nothing_", met))
+    
+  }) %>% 
+    unlist(recursive = FALSE)
+  
+  return(all_noth_res)
+}
+
+
+
+
 
