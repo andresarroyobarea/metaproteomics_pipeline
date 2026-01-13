@@ -115,7 +115,6 @@ write_metap_data <- function(df,
                        "functional" = "functional.tsv"
     )
   }
-  message("Level is: ", level)
   
   # 3. Build path
   base_path <- here("data", state, run)
