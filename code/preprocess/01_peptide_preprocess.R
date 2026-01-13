@@ -21,8 +21,7 @@ peptides <- read_metap_data("raw", current_run, "peptide")
 # TODO: This should be an external step where names should be properly stablished because this patters could change
 # between runs.
 # Ex. Samples should follow the same patter from begging: ID_203
-colnames(peptides) <- janitor::make_clean_names(colnames(peptides))
-colnames(peptides) <- gsub("^x", "ID_", colnames(peptides))
+colnames(peptides) <-  gsub("^x", "ID_", janitor::make_clean_names(colnames(peptides)))
 
 # -----------------------------
 # 3. Filter samples
@@ -37,9 +36,9 @@ peptides_processed <- filter_samples(peptides, samples_to_include = samples, ver
 # -----------------------------
 
 # Metrics to use in preprocessing
-metrics <- validate_metrics(df = peptides,
+metrics <- validate_metrics(df = peptides_processed,
                  data_level = "peptide",
-                 metrics_requested = metrics_to_use,
+                 metrics_requested = metrics_to_use_pep,
                  metrics_by_level = metrics_by_level)
 
 
@@ -48,8 +47,8 @@ metrics <- validate_metrics(df = peptides,
 # -----------------------------
 peptides_processed <- peptides_processed %>%
   mutate(
-    human_protein  = is_human_protein(protein, "HUMAN"),
-    unique_peptide = is_unique_peptide(mapped_proteins)
+    human_protein  = is_human_feature(protein, "HUMAN"),
+    unique_peptide = is_unique_feature(mapped_proteins)
   )
 
 # -----------------------------
@@ -82,7 +81,7 @@ peptides_processed <- peptides_processed %>%
     !!!filter_by_min_prevalence(
       df = .,
       cond_list = cond_list,
-      metric = metrics_to_use,
+      metric = metrics_to_use_pep,
       min_prop = prev_threshold
     )
   ) %>% 
@@ -92,7 +91,7 @@ peptides_processed <- peptides_processed %>%
     !!!filter_all_nothing(
       df = .,
       cond_list = cond_list,
-      metric = metrics_to_use,
+      metric = metrics_to_use_pep,
       min_prop = prev_threshold
     )
   )
@@ -102,13 +101,12 @@ peptides_processed <- peptides_processed %>%
 # -----------------------------
 peptides_processed <- peptides_processed %>%
   mutate(
-    # Flags atómicas
-    keep_non_human = human_protein == "NO",
-    keep_unique = unique_peptide == "YES",
+    keep_non_human = !human_protein,
+    keep_unique = unique_peptide,
     keep_intensity = intensity_sum > 0,
-    keep_min_prev = feature_min_prev_intens == "YES",
-    keep_all_nothing_NDMM = NDMM_all_nothing_intens == "YES",
-    keep_all_nothing_RRMM = RRMM_all_nothing_intens == "YES"
+    keep_min_prev = feature_min_prev_intens,
+    keep_all_nothing_NDMM = NDMM_all_nothing_intens,
+    keep_all_nothing_RRMM = RRMM_all_nothing_intens,
   )
 
 # -----------------------------
