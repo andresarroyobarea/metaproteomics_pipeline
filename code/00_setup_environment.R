@@ -103,7 +103,8 @@ metrics_by_level <- list(
   )
 )
 
-metrics_to_use <- c("intens", "spc")
+metrics_to_use_pep <- c("intens", "spc")
+metrics_to_use_prot <- c("intens", "spc")
 
 prev_threshold <- 0.5
 
