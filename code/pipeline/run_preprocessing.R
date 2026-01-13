@@ -6,9 +6,6 @@
 #       Purpose: Generate a pipeline to orchestrate the whole metaprotemomics 
 #       prepocessing process.
 # --------------------------------------------------------------------------------------------------------
-source("code/00_setup_environment.R")
-source("code/01_config.R")
-
 message("=== Starting preprocessing pipeline ===")
 
 if (run_peptide) {
