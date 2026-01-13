@@ -15,11 +15,23 @@
 #' Reads raw or processed data at a given biological level for a specified run.
 #' This function centralizes file paths and enforces reproducibility.
 #'
-#' @param state Character. Either "raw" or "processed".
-#' @param run Character. Experimental run, e.g. "run_2024", "run_2025", "run_human".
-#' @param level Character. Biological level: "peptide", "protein", "functional", or "taxonomy".
-#' @param filename Optional character. If NULL, defaults to "level.tsv" (e.g., peptide.tsv).
+#' @param state Character. 
+#'    Either "raw" or "processed".
+#'    
+#' @param run Character. 
+#'    Experimental run, e.g. "run_2024", "run_2025", "run_human".
+#'    
+#' @param level Character. 
+#'    Biological level: "peptide", "protein", "functional", or "taxonomy".
+#'    
+#' @param filename Optional character. 
+#'    If NULL, defaults to "level.tsv" (e.g., peptide.tsv).
+#'
+#' @param verbose logical, default FALSE
+#'   Whether to print informative messages data importing.
+#'    
 #' @return tibble with the requested dataset.
+#' 
 #' @examples
 #' read_metap_data(state = "raw", run = "run_2025", level = "peptide")
 #' read_metap_data(state = "processed", run = "run_2024", level = "protein", filename = "custom_proteins.tsv")
@@ -27,7 +39,8 @@
 read_metap_data <- function(state, 
                             run, 
                             level, 
-                            filename = NULL
+                            filename = NULL,
+                            verbose = FALSE
                             ) {
   
   # 1. Validate inputs
@@ -59,10 +72,18 @@ read_metap_data <- function(state,
   if (!file.exists(path)) stop(paste0("Error: File does not exist: ", path))
   
   # --- Read tsv files --- #
-  df <- vroom(path, 
-              delim = "\t", 
-              col_names = TRUE)
-  
+  if (verbose) {
+    df <- vroom(path, 
+                delim = "\t", 
+                col_names = TRUE)
+  } else {
+    df <- vroom(path, 
+                delim = "\t", 
+                col_names = TRUE,
+                progress = FALSE,
+                show_col_types = FALSE)
+  }
+
   return(df)
 }
 
@@ -72,12 +93,30 @@ read_metap_data <- function(state,
 #' 
 #' Write processed data at a given biological level for a specified run.
 #' This function centralizes file paths and enforces reproducibility.
+#' 
+#' @param df data.frame. 
+#'    Biological dataset to export (eg. peptide, protein, taxonomy or functional).
 #'
-#' @param state Character. Either "raw" or "processed".
-#' @param run Character. Experimental run, e.g. "run_2024", "run_2025", "run_human".
-#' @param level Character. Biological level: "peptide", "protein", "functional", or "taxonomy".
-#' @param filename Optional character. If NULL, defaults to "level.tsv" (e.g., peptide.tsv).
+#' @param state Character. 
+#'    It should be "processed".
+#'    
+#' @param run Character. 
+#'    Experimental run, e.g. "run_2024", "run_2025", "run_human".
+#'    
+#' @param level Character. 
+#'    Biological level: "peptide", "protein", "functional", or "taxonomy".
+#'
+#' @param subrun Character. 
+#'    Experimental subrun, e.g. "run_2024_no_ID1"
+#'    
+#' @param filename Optional character. 
+#'    If NULL, defaults to "level.tsv" (e.g., peptide.tsv).
+#'    
+#' @param overwrite Optional logical. 
+#'    Prevent or allow file overwriting.
+#'
 #' @return tibble with the requested dataset.
+#' 
 #' @examples
 #' write_metap_data(state = "raw", run = "run_2025", level = "peptide")
 #' write_metap_data(state = "processed", run = "run_2024", level = "protein", filename = "custom_proteins.tsv")
@@ -138,7 +177,7 @@ write_metap_data <- function(df,
   # --- Read tsv files --- #
   readr::write_tsv(df, path)
   
-  message("Peptide processed file saved in: ", path)
+  message(level, " processed file saved in: ", path)
   
   invisible(path)
 }
