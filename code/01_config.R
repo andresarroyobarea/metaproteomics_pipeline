@@ -104,13 +104,18 @@ peptide_sets_defs <- list(
     "keep_intensity",
     "keep_min_prev"
   ),
-  NDMM_all_nothing = c(
+  peptides_core_relaxed = c(
+    "keep_non_human",
+    "keep_unique",
+    "keep_intensity"
+  ),
+  peptides_NDMM_only = c(
     "keep_non_human",
     "keep_unique",
     "keep_intensity",
     "keep_all_nothing_NDMM"
   ),
-  RRMM_all_nothing = c(
+  peptides_RRMM_only = c(
     "keep_non_human",
     "keep_unique",
     "keep_intensity",
@@ -118,10 +123,44 @@ peptide_sets_defs <- list(
   )
 )
 
+# 4. Filtering sets criteria
+protein_sets_defs <- list(
+  proteins_core = c(
+    "keep_non_human",
+    "keep_unique",
+    "keep_intensity",
+    "keep_comb_uniq_spc",
+    "keep_comb_total_peptides",
+    "keep_n_unique_peptides",
+    "keep_min_prev"
+  ),
+  proteins_NDMM_only = c(
+    "keep_non_human",
+    "keep_unique",
+    "keep_intensity",
+    "keep_comb_uniq_spc",
+    "keep_comb_total_peptides",
+    "keep_n_unique_peptides",
+    "keep_all_nothing_NDMM"
+  ),
+  proteins_RRMM_only = c(
+    "keep_non_human",
+    "keep_unique",
+    "keep_intensity",
+    "keep_comb_uniq_spc",
+    "keep_comb_total_peptides",
+    "keep_n_unique_peptides",
+    "keep_all_nothing_RRMM"
+  )
+)
+
+
+
+
 # Pipeline steps
 # Preprocessing
 run_peptide <- TRUE
-run_protein <- FALSE
+run_protein <- TRUE
 run_taxonomy <- FALSE
 run_functional <- FALSE
 
@@ -132,6 +171,4 @@ run_functional <- FALSE
 # 1. samples -> vector de todas las muestras incluidas
 # 2. cond_list -> lista nombrada de condiciones con sus IDs
 # 3. metadata_filt -> dataframe de metadata filtrado
-
-
 
