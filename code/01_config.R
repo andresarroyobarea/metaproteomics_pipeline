@@ -118,6 +118,12 @@ peptide_sets_defs <- list(
   )
 )
 
+# Pipeline steps
+# Preprocessing
+run_peptide <- TRUE
+run_protein <- FALSE
+run_taxonomy <- FALSE
+run_functional <- FALSE
 
 
 # -----------------------------
