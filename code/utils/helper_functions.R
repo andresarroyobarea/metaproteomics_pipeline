@@ -54,7 +54,7 @@ filter_samples <- function(
   keep_sample_cols <- sample_cols[sample_ids %in% samples]
   
   # 4. Structural variables (peptides/protein/taxonomy/functional information)
-  structural_cols <- setdiff(colnames(peptides), sample_cols)
+  structural_cols <- setdiff(colnames(df), sample_cols)
   
   # 5. Informative checks
   missing_samples <- setdiff(samples, unique(sample_ids))
@@ -84,84 +84,55 @@ filter_samples <- function(
 }
 
 # --------------------------------------------------------------------------------------------------------
-#' Function to define is a protein has a human origin.
+#' Function to determine if a feature (peptide or protein) is human.
 #' 
 #' #' This function checks if the protein name matches a given human pattern and
 #' returns a factor with levels YES, NO, UNKNOWN.
 #'
-#' @param protein_var_name character. 
+#' @param feature_var character. 
 #'    Protein name variable retrieved from biological datasets (peptide, protein, taxonomy, functional)
 #'    
 #' @param human_pattern character. 
-#'    Specific pattern to identify human proteins. It could change between different reference databases.
+#'    Regex pattern to identify human proteins
 #'    
-#' @return factor.
-#'    YES/NO factor if satisfy the condition.
+#' @return Logical vector: TRUE if human, FALSE if non-human, NA if unknown
 #'
 #' @example 
-#' is_human_protein(c("HUMAN_P12345", "NLM010_GL0045818", NA), "HUMAN")
+#' is_human_feature(c("HUMAN_P12345", "NLM010_GL0045818", NA), "HUMAN")
 
-is_human_protein <- function(protein_var_name, human_pattern) {
+is_human_feature <- function(feature_var, human_pattern) {
   
   # Ensure input is character
-  protein_var_name <- as.character(protein_var_name)
+  feature_var <- as.character(feature_var)
   
-  factor(
-    case_when(
-      is.na(protein_var_name) ~ "UNKNOWN",
-      grepl(human_pattern, protein_var_name, ignore.case = TRUE) ~ "YES",
-      TRUE ~ "NO"
-    ), levels = c("YES", "NO", "UNKNOWN")
-  )
+  # Capture human features
+  result <- if_else(is.na(feature_var), NA,
+                    grepl(human_pattern, feature_var, ignore.case = TRUE))
+    
+  return(result)
   }
 
-  
-  
-# --------------------------------------------------------------------------------------------------------
-#' Function to define if a peptide map to only one protein
-#' 
-#'
-#' @param mapped_proteins_var_name character. Additional proteins mapped by peptides.
-#' @return YES/NO factor
 
-
-is_unique_peptide <- function(mapped_protein_var_name) {
-  
-  case_when(
-    # TODO: Initially this varible has "" instead of NA and maybe it should be modified.
-    mapped_protein_var_name == "" ~ "YES",
-    mapped_protein_var_name != "" ~ "NO",
-    TRUE ~ NA
-    
-  ) %>% factor()
-}
 
 # --------------------------------------------------------------------------------------------------------
-#' Function to define if a peptide maps to only one protein
+#' Determine if a feature (peptide or protein) is unique
 #'
-#' Checks the "mapped_proteins" variable. Returns YES if no additional proteins are mapped,
-#' NO if the peptide maps to multiple proteins, NA if unknown/missing.
-#'
-#' @param mapped_protein_var_name character. Additional proteins mapped by peptides.
+#' @param mapped_feature_var Character vector of mapped proteins
 #' 
-#' @return Factor with levels "YES", "NO".
+#' @return Logical vector: TRUE if unique, FALSE if maps to multiple, NA if unknown
 #' 
 #' @examples
 #' is_unique_peptide(c("", "P12345;P67890", NA))
 # --------------------------------------------------------------------------------------------------------
-is_unique_peptide <- function(mapped_protein_var_name) {
+is_unique_feature <- function(mapped_feature_var) {
   
   # Ensure input is character
-  mapped_protein_var_name <- as.character(mapped_protein_var_name)
+  mapped_feature_var <- as.character(mapped_feature_var)
   
-  # Compute uniqueness
-  factor(
-    case_when(
-      is.na(mapped_protein_var_name) | mapped_protein_var_name == "" ~ "YES",
-      TRUE ~ "NO"
-    ),
-    levels = c("YES", "NO")
-  )
+  # Unique if empty or NA
+  result <- is.na(mapped_feature_var) | mapped_feature_var == ""
+  
+  return(result)
 }
 
 # --------------------------------------------------------------------------------------------------------
@@ -390,8 +361,7 @@ filter_by_min_prevalence <- function(
   
     presence_suffix <- paste0("_feature_prev_", metric)
     
-    value <- if_else(
-        rowSums(
+    value <- rowSums(
           sapply(names(cond_list), function(cond) {
             
             col <- paste0(cond, presence_suffix)
@@ -402,13 +372,13 @@ filter_by_min_prevalence <- function(
             
             df[[col]] >= ceiling(length(cond_list[[cond]]) * min_prop)
           }) 
-        ) == length(cond_list), 
-        "YES",
-        "NO")
+        ) == length(cond_list)
     
     setNames(list(value),  paste0("feature_min_prev_", metric))
     
   }) %>% unlist(recursive = FALSE)
+  
+  return(res)
 
 }
 
@@ -430,8 +400,9 @@ filter_by_min_prevalence <- function(
 #' @param min_prop numeric, default 0.5.
 #'    Minimum prevalence value to meet in each group to retain the feature.
 
-#' @return data.frame
-#'    The input dataset with additional variables for filtering criteria.
+#' @return logical.  
+#'    TRUE if the feature is present in this condition according to min_prop
+#     AND absent in all other conditions ("all/nothing")
 #'    
 #' @examples
 #' 
@@ -477,12 +448,8 @@ filter_all_nothing <- function(
       other_cols <- setdiff(paste0(names(cond_list), "_feature_prev_", met), cond_col)
       
       # "all/nothing" checks.
-      if_else(
-        df[[cond_col]] >= ceiling(length(cond_list[[cond]]) * min_prop) &
-          rowSums(df[other_cols] != 0) == 0,
-        "YES",
-        "NO"
-      )
+      value <-  df[[cond_col]] >= ceiling(length(cond_list[[cond]]) * min_prop) &
+          rowSums(df[other_cols] != 0) == 0
       
     }, simplify = FALSE) %>% 
       
@@ -561,15 +528,66 @@ build_sets <- function(df, set_defs) {
     cols <- set_defs[[set_name]]
     
     # A feature belongs to the set only if all criteria are TRUE
-    df[[set_name]] <- factor(
-      if_else(Reduce(`&`, lapply(cols, function(c) df[[c]])), "YES", "NO")
-    )
+    df[[set_name]] <- Reduce(
+      `&`, lapply(cols, function(c) df[[c]])
+      )
   }
   df
 }
 
+# --------------------------------------------------------------------------------------------------------
+#' Count peptides per protein based on a peptide-level flag
+#'
+#' @description 
+#' This function aggregates peptide-level information to protein level by counting
+#' the number of peptides that satisfy a given logical condition (`peptide_flag`)
+#' for each protein.
+#' 
+#' The filtering criterion must already exist as a logical (TRUE/FALSE) column
+#' in the peptide dataset. This design decouples biological definitions
+#' (e.g. core peptides, all/nothing peptides, relaxed filters) from the aggregation
+#' logic, allowing flexible and scalable reuse across analyses
+#' 
+#' @param peptides_df data.frame.
+#'   Peptide-level dataset (typically processed peptides).
+#'   
+#' @param peptide_flag character.
+#'   Name of a logical column used to select peptides for aggregation.
+#'
+#' @param protein_var character, default = "protein"
+#'   Name of the column identifying proteins in the peptide dataset.
+#'
+#' @param out_var character, default = "n_peptides"
+#'   Name of the output column containing the peptide count per protein.
+#'
+#' @return data.frame
+#'   A data.frame with one row per protein and a single column containing
+#'   the number of peptides satisfying the specified condition.
+#'
+#' @examples
+#' count_peptides_per_protein(
+#'   peptides_processed,
+#'   peptide_flag = "peptides_core",
+#'   protein_var = "protein",
+#'   out_var = "n_unique_peptides_core"
+#' )
+#'
+#' @export
+#' # --------------------------------------------------------------------------------------------------------
 
 
-
+count_peptides_per_proteins <- function(
+    peptides_df,
+    peptide_flag,
+    protein_var = "protein",
+    out_var = "n_unique_peptides") {
+  
+  # Summarize the information.
+  peptides_df_agg <- peptides_df %>%
+    dplyr::filter(.data[[peptide_flag]]) %>%
+    dplyr::count(.data[[protein_var]], name = out_var)
+  
+  return(peptides_df_agg)  
+}
 
 
