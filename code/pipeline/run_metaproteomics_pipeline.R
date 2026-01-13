@@ -6,4 +6,9 @@
 #       Purpose: Generate a pipeline to orchestrate the whole metaprotemomics 
 #       data analysis
 # --------------------------------------------------------------------------------------------------------
+source("code/00_setup_environment.R")
+source("code/01_config.R")
+
+# --- Preprocessing --- 
 source("code/pipeline/run_preprocessing.R")
+
