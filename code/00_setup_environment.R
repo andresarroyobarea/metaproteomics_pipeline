@@ -100,11 +100,17 @@ metrics_by_level <- list(
     spc = "spectral_count",
     uniq_spc = "unique_spectral_count",
     total_spc = "total_spectral_count"
+  ),
+  functional = c(
+    intens = "intensity",
+    max_intens = "max_lfq_intensity"
   )
 )
 
 metrics_to_use_pep <- c("intens", "spc")
 metrics_to_use_prot <- c("intens", "spc")
+metrics_to_use_func <- c("intens")
+
 
 prev_threshold <- 0.5
 
