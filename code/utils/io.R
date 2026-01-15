@@ -62,7 +62,7 @@ read_metap_data <- function(state,
                        "peptide" = "combined_peptide.tsv",
                        "protein" = "combined_protein.tsv",
                        "taxonomy" = "taxonomy.tsv",
-                       "functional" = "functional.tsv"
+                       "functional" = "functions.tsv"
     )
   }
   # --- Build path --- #
