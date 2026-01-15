@@ -97,6 +97,8 @@ for (cond in names(cond_list)) {
 
 
 # 4. Filtering sets criteria
+
+# Peptides
 peptide_sets_defs <- list(
   peptides_core = c(
     "keep_non_human",
@@ -123,7 +125,7 @@ peptide_sets_defs <- list(
   )
 )
 
-# 4. Filtering sets criteria
+# Proteins
 protein_sets_defs <- list(
   proteins_core = c(
     "keep_non_human",
@@ -154,6 +156,23 @@ protein_sets_defs <- list(
   )
 )
 
+# Functional
+protein_flags_for_functions <- c(
+  "keep_non_human",
+  "keep_unique",
+  "keep_intensity",
+  "keep_comb_uniq_spc",
+  "keep_comb_total_peptides",
+  "keep_n_unique_peptides",
+  "keep_min_prev",
+  "keep_all_nothing_NDMM",
+  "keep_all_nothing_RRMM"
+)
+
+
+# Functional constants
+intensity_pattern <- "intensity_(\\d+\\w*)(?:_(max_lfq))?"
+intensity_replacement <- "ID_\\1\\2_intensity"
 
 
 
@@ -162,7 +181,7 @@ protein_sets_defs <- list(
 run_peptide <- TRUE
 run_protein <- TRUE
 run_taxonomy <- FALSE
-run_functional <- FALSE
+run_functional <- TRUE
 
 
 # -----------------------------
