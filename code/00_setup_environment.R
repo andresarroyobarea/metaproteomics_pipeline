@@ -104,12 +104,16 @@ metrics_by_level <- list(
   functional = c(
     intens = "intensity",
     max_intens = "max_lfq_intensity"
+  ),
+  taxonomy = c(
+    intens = "intensity"
   )
 )
 
 metrics_to_use_pep <- c("intens", "spc")
 metrics_to_use_prot <- c("intens", "spc")
 metrics_to_use_func <- c("intens")
+metrics_to_use_tax <- c("intens")
 
 
 prev_threshold <- 0.5
