@@ -170,17 +170,47 @@ protein_flags_for_functions <- c(
 )
 
 
+# Taxonomy flags
+# Proteins
+taxonomy_sets_defs <- list(
+  taxa_prev_50 = c(
+    "keep_min_prev"
+  ),
+  taxa_core = c(
+    "keep_intensity",
+    "keep_bacteria",
+    "keep_archea",
+    "keep_min_prev"
+  ),
+  taxa_NDMM_only = c(
+    "keep_intensity",
+    "keep_bacteria",
+    "keep_archea",
+    "keep_all_nothing_NDMM"
+  ),
+  taxa_RRMM_only = c(
+    "keep_intensity",
+    "keep_bacteria",
+    "keep_archea",
+    "keep_all_nothing_RRMM"
+  )
+)
+
+
 # Functional constants
 intensity_pattern <- "intensity_(\\d+\\w*)(?:_(max_lfq))?"
 intensity_replacement <- "ID_\\1\\2_intensity"
 
-
+# Taxonomy information and prefixes
+tax_levels <- c("superkingdom", "phylum", "class", "order", "family", "genus", "species")
+tax_prefixes   <- c("d__", "p__", "c__", "o__", "f__", "g__", "s__")
+tax_miss_pref <- "Unclassified"
 
 # Pipeline steps
 # Preprocessing
 run_peptide <- TRUE
 run_protein <- TRUE
-run_taxonomy <- FALSE
+run_taxonomy <- TRUE
 run_functional <- TRUE
 
 
