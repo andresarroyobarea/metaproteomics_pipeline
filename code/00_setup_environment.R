@@ -8,17 +8,15 @@
 #   Standard setup for reproducible analysis in this project
 #   Load packages, sets paths, sources utility functions, and define global settings.
 # --------------------------------------------------------------------------------------------------------
-
-### 1. Environment setup ---------------------------------------------------------------------------------
-
 # Clean environment
 rm(list = ls())
 
 # Reproducibility: fix a random seed
 set.seed(1234)
 
-### 2. Load required packages ----------------------------------------------------------------------------
-## Libraries
+# -----------------------------
+# 1. Load libraries
+# -----------------------------
 pacman::p_load(
   # Loading and data manipulation.
   readr, openxlsx, janitor, naniar, skimr, reshape2, dplyr, tidyverse, forcats, vroom, here,
@@ -42,22 +40,41 @@ pacman::p_load(
   gtsummary
   )
 
-### 3. Paths (relative to project root) ------------------------------------------------------------------
-# Data
-path_data_raw <- here("data", "raw")
-path_data_processed <- here("data", "processed")
+# -----------------------------
+# 2. Experiment/run info
+# -----------------------------
+current_run <- "run_2025"
+subrun <- NULL    # opcional, si hay subrun
 
-# Metadata
-# TODO: Turn "run" into parameter
-path_metadata <- here("metadata", "run_2025")
+# -----------------------------
+# 3. Paths
+# -----------------------------
+path_data_raw       <- here("data", "raw", current_run)
+path_data_processed <- here("data", "processed", current_run)
+path_metadata       <- here("metadata", current_run)
+path_metadata_processed       <- here("results", current_run)
+metadata_file       <- "metaproteomics_MM_metadata.csv"
+path_results        <- here("results", current_run)
 
-# Project-specific results
-path_results <- here("results")
+
+# -----------------------------
+# 4. Metadata filtering rules
+# -----------------------------
+# Column to use for filtering active samples
+metadata_include_col <- "include"
+
+# Allowed values for downstream analysis
+metadata_include_yes <- c("YES")
+metadata_condition_allowed <- c("NDMM", "RRMM")  
+
 
 # Utility functions
 utils_files <- list.files(here("code", "utils"), pattern = "\\.R$", full.names = TRUE)
 
-### 4. Source custom functions ----------------------------------------------------------------------------
+
+# ----------------------------------
+# 5. Loading source custom functions
+# ----------------------------------
 if (length(utils_files) > 0) {
   for (f in utils_files) {
     message("Loading utils: ", basename(f))
@@ -67,27 +84,11 @@ if (length(utils_files) > 0) {
   warning("No utils scripts found: project functions unavailable.")
 }
 
-### 5. Global plotting options
-theme_set(
-  theme_bw() +
-    theme(
-      title = element_text(size = 24),
-      legend.title = element_blank(),
-      legend.text = element_text(size = 22 ),
-      axis.text = element_text(size = 22, colour = "black" ),
-      axis.text.y = element_text(size = 22, colour = "black"),
-      axis.title.x = element_text(size = 22, colour = "black", face = "plain"),
-      axis.title.y = element_text(size = 22, colour = "black", face = "plain"),
-    ) 
-)
+# ----------------------------------
+# 6. Metric setup
+# ----------------------------------
 
-# Define a default palette for consistency
-palette_mm_status <- c(
-  "NDMM" = "red",
-  "RRMM" = "blueviolet"
- )
-
-# Proteomics metrics
+# Allowed proteomics metrics
 metrics_by_level <- list(
   peptide = c(
     intens = "intensity",
@@ -110,17 +111,43 @@ metrics_by_level <- list(
   )
 )
 
+# Metrics to use
 metrics_to_use_pep <- c("intens", "spc")
 metrics_to_use_prot <- c("intens", "spc")
 metrics_to_use_func <- c("intens")
 metrics_to_use_tax <- c("intens")
 
-
+# Prevalence threshold
 prev_threshold <- 0.5
 
-# Current run
-# TODO: Evalute if create a config file
-current_run <- "run_2025"
+
+
+
+# ----------------------------------
+# 7. Visualization set up
+# ----------------------------------
+theme_set(
+  theme_bw() +
+    theme(
+      title = element_text(size = 24),
+      legend.title = element_blank(),
+      legend.text = element_text(size = 22 ),
+      axis.text = element_text(size = 22, colour = "black" ),
+      axis.text.y = element_text(size = 22, colour = "black"),
+      axis.title.x = element_text(size = 22, colour = "black", face = "plain"),
+      axis.title.y = element_text(size = 22, colour = "black", face = "plain"),
+    ) 
+)
+
+# Define a default palette for consistency
+palette_mm_status <- c(
+  "NDMM" = "red",
+  "RRMM" = "blueviolet"
+ )
+
+
+
+
 
 
                   
