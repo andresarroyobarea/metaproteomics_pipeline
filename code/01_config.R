@@ -212,6 +212,7 @@ run_peptide <- TRUE
 run_protein <- TRUE
 run_taxonomy <- TRUE
 run_functional <- TRUE
+run_metadata <- TRUE
 
 
 # -----------------------------
