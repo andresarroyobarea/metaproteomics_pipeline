@@ -31,3 +31,9 @@ if (run_functional) {
   source("code/preprocess/04_functional_preprocess.R")
   message("[OK]: Functional preprocessing completed!")
 }
+
+if (run_metadata) {
+  message(">>> Metadata preprocessing starting...")
+  source("code/preprocess/05_metadata_preprocess.R")
+  message("[OK]: Metadata preprocessing completed!")
+}
