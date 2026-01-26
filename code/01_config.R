@@ -178,20 +178,20 @@ taxonomy_sets_defs <- list(
   ),
   taxa_core = c(
     "keep_intensity",
-    "keep_bacteria",
-    "keep_archea",
+    "keep_prokaryota",
+    "keep_classified_any",
     "keep_min_prev"
   ),
   taxa_NDMM_only = c(
     "keep_intensity",
-    "keep_bacteria",
-    "keep_archea",
+    "keep_prokaryota",
+    "keep_classified_any",
     "keep_all_nothing_NDMM"
   ),
   taxa_RRMM_only = c(
     "keep_intensity",
-    "keep_bacteria",
-    "keep_archea",
+    "keep_prokaryota",
+    "keep_classified_any",
     "keep_all_nothing_RRMM"
   )
 )
