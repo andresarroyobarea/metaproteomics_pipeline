@@ -50,13 +50,14 @@ metrics <- validate_metrics(
 
 
 # -----------------------------
-# 5. Add taxa IDs.
+# 5. Add taxa IDs and Turn NA into "Unclassified"
 # -----------------------------
 taxonomy_processed <- taxonomy_processed %>% 
   mutate(
     taxa_id = paste0("taxa_", row_number()),
     .before = name
-) 
+) %>%
+  mutate(across(superkingdom:species, ~replace_na(., tax_miss_pref)))
 
 # -----------------------------
 # 6. Intensity-derived metrics
@@ -109,11 +110,34 @@ taxonomy_processed <- taxonomy_processed %>%
 # -----------------------------
 taxonomy_processed <- taxonomy_processed %>%
   mutate(
+    
+    # Domain
     is_bacteria  = superkingdom == "Bacteria",
     is_eukaryota = superkingdom == "Eukaryota",
     is_virus     = superkingdom == "Viruses",
-    is_archea   = superkingdom == "Archea",
+    is_archaea   = superkingdom == "Archaea",
+    is_prokaryota  = superkingdom %in% c("Bacteria", "Archaea"),
+    
+    # Taxonomic level classification flags
+    # Flags por nivel taxonómico
+    is_phylum_classified  = phylum  != "Unclassified",
+    is_class_classified   = class   != "Unclassified",
+    is_order_classified   = order   != "Unclassified",
+    is_family_classified  = family  != "Unclassified",
+    is_genus_classified   = genus   != "Unclassified",
+    is_species_classified = species != "Unclassified",
+    
+    # General classification flag: From phylum to species
+    is_any_tax_level_classified = phylum  != "Unclassified" |
+      class   != "Unclassified" |
+      order   != "Unclassified" |
+      family  != "Unclassified" |
+      genus   != "Unclassified" |
+      species != "Unclassified"
   )
+
+
+
 
 # -----------------------------
 # 9. Atomic flags.
@@ -129,7 +153,15 @@ taxonomy_processed <- taxonomy_processed %>%
     keep_bacteria = is_bacteria,
     keep_eukaryota = is_eukaryota,
     keep_virus = is_virus,
-    keep_archea = is_archea
+    keep_archaea = is_archaea,
+    keep_prokaryota = is_prokaryota,
+    keep_phylum_classified = is_phylum_classified,
+    keep_class_classified = is_class_classified,
+    keep_order_classified = is_order_classified,
+    keep_family_classified = is_family_classified,
+    keep_genus_classified = is_genus_classified,
+    keep_species_classified = is_species_classified,
+    keep_classified_any = is_any_tax_level_classified
   )
 
 # -----------------------------
@@ -137,41 +169,31 @@ taxonomy_processed <- taxonomy_processed %>%
 # -----------------------------
 taxonomy_processed <- build_sets(taxonomy_processed, taxonomy_sets_defs)
 
-
 # -----------------------------
 # 11. Create specific objects
 # -----------------------------
 
-# Taxonomy sets.
-taxonomy_sets <- taxonomy_processed %>% select(taxa_id, taxa_core:taxa_RRMM_only)
-
-# Taxonomy table
-taxonomy_tax_table <- taxonomy_processed %>% 
+# TODO: Think about exporting two separte objects for taxonomy and ASVs instead of
+# exporting a complete one
+taxonomy_processed <- taxonomy_processed %>% 
   # TODO: SELECT VARIABLES TO RETAIN
-  select(-starts_with("keep")) %>%
+  select(-starts_with("is")) %>%
   mutate(
     across(
       .cols = tax_levels, 
-      .fns = ~ if_else(
-        is.na(.x),
-        paste0(tax_prefixes[which(tax_levels == cur_column())], tax_miss_pref),
-        paste0(tax_prefixes[which(tax_levels == cur_column())], .x)
+      .fns = ~paste0(tax_prefixes[which(tax_levels == cur_column())], .x)
       )
-    )
-  ) %>%
+    )%>%
   tidyr::unite(
     "taxa_name", 
     all_of(tax_levels), 
     sep = ";", 
-    remove = F)
-
-
-# ASV table
-taxonomy_asv_table <- taxonomy_processed %>% 
-  select(taxa_id, matches(samples)) %>%
+    remove = F) %>% 
   # TODO: Update in the future if more metrics are added at taxonomical level.
-  rename_with(~ gsub("_intensity$", "", .x), ends_with("_intensity"))
+  rename_with(~ gsub("_intensity$", "", .x), starts_with("ID_")) 
 
 
-  
-
+# -------------------------------------
+# 12. Export preprocessed proteins file
+# -------------------------------------
+write_metap_data(taxonomy_processed, state = "processed", run = current_run, level = "taxonomy")
