@@ -38,7 +38,6 @@ colnames(functional) <- gsub(
 # Keep only samples retained after metadata-level QC
 functional_processed <- filter_samples(functional, samples_to_include = samples, verbose = T)
 
-
 # -----------------------------
 # 4. Validate metrics. 
 # -----------------------------
@@ -70,7 +69,7 @@ functional_processed <- functional_processed %>%
         # Proteins satisfying the given protein-level condition
         prot_flag <- proteins_processed %>%
           filter(.data[[flag]]) %>%
-          pull(protein)
+          pull(feature_id)
         
         # TRUE if this functional protein belongs to that set  
         tibble(!!flag := fp$protein_id %in% prot_flag)
@@ -85,7 +84,15 @@ functional_processed <- functional_processed %>%
 # Functional sets mirror protein-level biological definitions
 functional_processed <- build_sets(functional_processed, protein_sets_defs)
 
+
+# -----------------------------
+# 7.Feature-level annotations
+# -----------------------------
+functional_processed <- functional_processed %>%
+  dplyr::rename(feature_id = protein_id)
+
+
 # -------------------------------------
-# 7.Export preprocessed functions file
+# 8.Export preprocessed functions file
 # -------------------------------------
 write_metap_data(functional_processed, state = "processed", run = current_run, level = "functional")

@@ -54,7 +54,7 @@ metrics <- validate_metrics(
 # -----------------------------
 taxonomy_processed <- taxonomy_processed %>% 
   mutate(
-    taxa_id = paste0("taxa_", row_number()),
+    feature_id = paste0("taxa_", row_number()),
     .before = name
 ) %>%
   mutate(across(superkingdom:species, ~replace_na(., tax_miss_pref)))

@@ -144,7 +144,8 @@ proteins_processed <- proteins_processed %>%
     keep_n_unique_peptides = n_unique_peptides_relaxed >= 1,
     keep_all_nothing_NDMM = NDMM_all_nothing_intens,
     keep_all_nothing_RRMM = RRMM_all_nothing_intens,
-  )
+  ) %>%
+  dplyr::rename(feature_id = protein)
 
 # -----------------------------
 # 10. Build final biological sets.

@@ -49,7 +49,8 @@ peptides_processed <- peptides_processed %>%
   mutate(
     human_protein  = is_human_feature(protein, "HUMAN"),
     unique_peptide = is_unique_feature(mapped_proteins)
-  )
+  ) %>%
+  dplyr::rename(feature_id = peptide_sequence)
 
 # -----------------------------
 # 6. Intensity-derived metrics
