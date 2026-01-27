@@ -121,8 +121,6 @@ metrics_to_use_tax <- c("intens")
 prev_threshold <- 0.5
 
 
-
-
 # ----------------------------------
 # 7. Visualization set up
 # ----------------------------------
@@ -138,15 +136,6 @@ theme_set(
       axis.title.y = element_text(size = 22, colour = "black", face = "plain"),
     ) 
 )
-
-# Define a default palette for consistency
-palette_mm_status <- c(
-  "NDMM" = "red",
-  "RRMM" = "blueviolet"
- )
-
-
-
 
 
 
