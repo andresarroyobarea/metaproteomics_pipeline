@@ -34,7 +34,7 @@ eda_metrics <- list(
   protein = c(
     intens = "intensity",
     max_intens = "max_lfq_intensity",
-    spc = "spectral_count",
+    spc = "spectral_count"
   ),
   functional = c(
     intens = "intensity",
@@ -80,6 +80,14 @@ eda_default_normalization <- list(
   functional = "log2",
   taxonomy = "log2"
 )
+
+# EDA zero handling
+eda_zero_handling <- list(
+  log_method = "na",      # "na" | "pseudocount"
+  pseudocount = 1,
+  after_log = "keep_na"   # "keep_na" | "back_to_zero"
+)
+
 
 # -------------------------------------------
 # 5. Subset options
