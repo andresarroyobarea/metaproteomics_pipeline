@@ -65,29 +65,20 @@ eda_filter_sets <- list(
 # EDA scripts can check this config to decide wheter to log-transform, scale or
 # normalize the data.
 # Typical proteomics normalization approaches are included in this set.
-eda_normalization_options <- c(
-  "none",
-  "log2",
-  "log10",
-  "log2_median_norm",
-  "log10_median_norm"
+eda_data_options <- list(
+  
+  biological_mode = c("raw", "abundance"),
+  
+  transform_mode = c("none", "log2"),
+  
+  normalization_mode = c("none", "median"),
+  
+  zero_strategy = c(
+    "keep",          # zeros stay zero
+    "pseudo",        # zeros -> pseudocount
+    "na_to_zero"     # NA -> 0 (post-transform)
+  )
 )
-
-# Default normalization for each level
-eda_default_normalization <- list(
-  peptide = "log2",
-  protein = "log2",
-  functional = "log2",
-  taxonomy = "log2"
-)
-
-# EDA zero handling
-eda_zero_handling <- list(
-  log_method = "na",      # "na" | "pseudocount"
-  pseudocount = 1,
-  after_log = "keep_na"   # "keep_na" | "back_to_zero"
-)
-
 
 # -------------------------------------------
 # 5. Subset options
