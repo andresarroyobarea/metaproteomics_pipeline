@@ -72,7 +72,7 @@ functional_processed <- functional_processed %>%
           pull(feature_id)
         
         # TRUE if this functional protein belongs to that set  
-        tibble(!!flag := fp$protein_id %in% prot_flag)
+        tibble(!!flag := fp$name %in% prot_flag)
     })
     )
 }
@@ -89,7 +89,7 @@ functional_processed <- build_sets(functional_processed, protein_sets_defs)
 # 7.Feature-level annotations
 # -----------------------------
 functional_processed <- functional_processed %>%
-  dplyr::rename(feature_id = protein_id)
+  dplyr::rename(feature_id = name)
 
 
 # -------------------------------------
