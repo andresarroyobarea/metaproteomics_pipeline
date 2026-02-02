@@ -188,9 +188,7 @@ taxonomy_processed <- taxonomy_processed %>%
     "taxa_name", 
     all_of(tax_levels), 
     sep = ";", 
-    remove = F) %>% 
-  # TODO: Update in the future if more metrics are added at taxonomical level.
-  rename_with(~ gsub("_intensity$", "", .x), starts_with("ID_")) 
+    remove = F)
 
 
 # -------------------------------------
