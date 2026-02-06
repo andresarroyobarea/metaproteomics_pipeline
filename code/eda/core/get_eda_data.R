@@ -406,35 +406,41 @@ apply_data_transform <- function(
     return(df)
   }
   
-  # 2. No transformation.
+  # 2. Check if transformation option is available.
+  if (!transform_mode %in% eda_data_options$transform_mode) {
+    stop("[ERROR]: Transformation ", transform_mode, " not found. Avaliable options are ",  
+         paste(eda_data_options$transform_mode, collapse = ", "))
+  }
+
+  # 3. No transformation.
   if (transform_mode == "raw") {
     if (verbose) message("[INFO]: No transformation applied.")
     return(df)
   }
   
-  # 3. Apply absence/presence matrix
+  # 4. Apply absence/presence matrix
   if (transform_mode == "detection") {
     df <- df %>% mutate(across(-feature_id, ~ ifelse(. > 0, 1, 0)))
     if (verbose) message("[INFO]: Data was converted into absence/presence.")
     return(df)
   }
   
-  # 4. Apply processing.
+  # 5. Apply processing.
   if (transform_mode == "quantitative") {
     
-    # 4.1 Apply zero handling
+    # 5.1 Apply zero handling
     df <- apply_zero_handling(df, strategy = zero_strategy, pseudocount = pseudocount)
     
-    # 4.2 Apply log transform
-    df <- apply_log_transform(df, transform = log_transform)
+    # 5.2 Apply log transform
+    df <- apply_log_transform(df, log_transform = log_transform)
     
-    # 4.3 Apply normalization
+    # 5.3 Apply normalization
     df <- apply_normalization(df, norm_mode = normalization)
     
-    # 4.4 Apply post-zero handling
+    # 5.4 Apply post-zero handling
     df <- apply_post_zero_handling(df, strategy = post_zero_strategy)
   }
-
+  
   return(df)
   
 }
@@ -481,29 +487,42 @@ apply_data_transform <- function(
 
 apply_zero_handling <- function(df, strategy = "keep", pseudocount = 0.1) {
   
-  # Not change
+  # 1. Check if initial zero handling strategy option is available.
+  if (!strategy %in% eda_data_options$zero_strategy) {
+    stop("[ERROR]: Initial zero handling strategy ", strategy, " not found. Available options are ", 
+         paste(eda_data_options$zero_strategy, collapse = ", "))
+  }
+
+  # 2. Initial zero handling options
+  # 2.1 Not change
   if (strategy == "keep") {
     message("[INFO]: Zeros were ketp as zeros.")
     return(df)
   }
   
-  # Change 0 to NA
+  # 2.2 Change 0 to NA
   if (strategy == "na") {
     df <- df %>% mutate(across(matches("^ID_\\d+_"), ~ ifelse(. == 0, NA, .)))
     message("[INFO]: Zeros were turned into NA previous log transformation.")
     return(df)
   }
   
-  # Add pseudocount if needed
+  # 2.3 Add pseudocount if needed
   if (strategy == "pseudocount") {
+    if (pseudocount < 0) {
+      stop("[ERROR]: A negative pseudocount is not possible.")
+    }
+    if (!pseudocount %in% eda_data_options$pseudocount) {
+      warning("[WARNING]: Common pseudocount optios are ", 
+              paste0(eda_data_options$pseudocount, collapse = ","))
+    }
   # TODO: Add different zero count strategy for intensities and spectral counts.
     message(paste0("[INFO]: A pseudocount of ", pseudocount,  "was added previous log transformation."))
     df <- df %>% mutate(across(matches("^ID_\\d+_"), ~ . + pseudocount))
     return(df)
   }
   
-  stop("[ERROR]: Unknown strategy: ", strategy)
-}
+  }
 
 # --------------------------------------------------------------------------------------------------------
 #' apply_log_transform
@@ -542,32 +561,37 @@ apply_zero_handling <- function(df, strategy = "keep", pseudocount = 0.1) {
 #' # --------------------------------------------------------------------------------------------------------
 apply_log_transform <- function(df, log_transform = "none") {
   
-  # No transformation
+  # 1. Check if log transform option is available.
+  if (!log_transform %in% eda_data_options$log_transform) {
+    stop("[ERROR]: Log transformation ", log_transform, " not found. Available options are ", 
+         paste(eda_data_options$log_transform, collapse = ", "))
+  }
+  
+  # 2. Log transformations
+  # 2.1 No transformation
   if (log_transform == "none") {
     message("[INFO]: NO log transformation was applied.")
     return(df)
   }
   
-  # Log transformations
   if ((log_transform == "log2" | log_transform == "log10") & any(df == 0,na.rm = T)) {
     message("[WARNING]: Log transformation will be applied over 0: Inf values were returned.")
   }
   
-  # Log2 transformation  
+  # 2.2 Log2 transformation  
   if (log_transform == "log2") {
     df <- df %>% mutate(across(matches("^ID_\\d+_"), ~ log2(.)))
     message("[INFO]: Log2 transformation was applied.")
     return(df)
     }
     
-  # Log10 transformation
+  # 2.3 Log10 transformation
   if (log_transform == "log10") {
     df <- df %>% dplyr::mutate(across(matches("^ID_\\d+_"), ~ log10(.)))
     message("[INFO]: Log10 transformation was applied.")
     return(df)
   }
   
-  stop("Unknown transform: ", log_transform)
 }
 
 # --------------------------------------------------------------------------------------------------------
@@ -609,7 +633,14 @@ apply_normalization <- function(df, norm_mode = "median") {
   
   # TODO: Add quantile normalization with preprocessCore R package.
   
-  # No Normalization
+  # 1. Check if normalization option is available.
+  if (!norm_mode %in% eda_data_options$normalization) {
+    stop("[ERROR]: Normalization  ", norm_mode, " not found. Available options are ", 
+         paste(eda_data_options$normalization, collapse = ", "))
+  }
+  
+  # 2. Normalization options.
+  # 2.1 No Normalization
   if (norm_mode == "none"){
     message("[INFO]: NO normalization was applied.")
     return(df)
@@ -619,15 +650,12 @@ apply_normalization <- function(df, norm_mode = "median") {
     stop("[ERROR]: numeric columns contain Inf or -Inf. This usually happens if you log-transformed zeros. Replace zeros with a small value or NA before normalizing.")
   }
   
-  # Column-wise median centering normalization.
+  # 2.2 Column-wise median centering normalization.
   if (norm_mode == "median"){
     df_norm <- df %>% dplyr::mutate(across(matches("^ID_\\d+_"), ~ . - median(., na.rm = TRUE)))
     message("[INFO]: Median normalization was applied.")
     return(df_norm)
   }
-  
-  stop("Unknown normalization mode: ", norm_mode)
-  
 }
 
 # --------------------------------------------------------------------------------------------------------
@@ -668,19 +696,24 @@ apply_post_zero_handling <- function(df, strategy = "keep"){
   
   # Sometimes zeros or NA were needed for different purposes after normalization.
   
-  # Zeros retained
+  # 1. Check if post zero handling strategy is available.
+  if (!strategy %in% eda_data_options$post_zero_strategy) {
+    stop("[ERROR]: Post-zero handling strategy  ", strategy, " not found. Available options are ", 
+         paste(eda_data_options$post_zero_strategy, collapse = ", "))
+  }
+  
+  # 2. Post-zero handling strategy options
+  # 2.1 Zeros retained
   if (strategy == "keep") {
     message("[INFO]: NO post-zero handling after normalization.")
     return(df) 
   }
   
-  # NA -> ZERO
+  # 2.2 NA -> ZERO
   if (strategy == "zero" & any(is.na(df))) {
     df <- df %>% mutate(across(matches("^ID_\\d+_"), ~ ifelse(is.na(.), 0, .)))
     message("[INFO]: NAs were turned into zeros")
     return(df)
   }
-  
-  stop("Unknown post-zero handling mode: ", norm_mode)
-  
+
 }
