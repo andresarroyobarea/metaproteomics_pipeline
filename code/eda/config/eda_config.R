@@ -67,17 +67,17 @@ eda_filter_sets <- list(
 # Typical proteomics normalization approaches are included in this set.
 eda_data_options <- list(
   
-  biological_mode = c("raw", "abundance"),
+  transform_mode = c("raw", "detection", "quantitative"),
   
-  transform_mode = c("none", "log2"),
+  zero_strategy = c("keep", "na", "pseudocount"),
   
-  normalization_mode = c("none", "median"),
+  pseudocount = c(0.001, 0.01, 0.1, 0.5, 1),
   
-  zero_strategy = c(
-    "keep",          # zeros stay zero
-    "pseudo",        # zeros -> pseudocount
-    "na_to_zero"     # NA -> 0 (post-transform)
-  )
+  log_transform = c("none", "log2", "log10"),
+  
+  normalization = c("none", "median"),
+  
+  post_zero_strategy = c("keep", "zero")
 )
 
 # -------------------------------------------
