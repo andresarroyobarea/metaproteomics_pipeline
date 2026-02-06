@@ -11,29 +11,29 @@ message("=== Starting preprocessing pipeline ===")
 if (run_peptide) {
   message(">>> Peptide preprocessing starting...")
   source("code/preprocess/01_peptide_preprocess.R")
-  message("[OK]: Peptide preprocessing completed!")
+  message("[INFO]: Peptide preprocessing completed!")
 }
 
 if (run_protein) {
   message(">>> Protein preprocessing starting...")
   source("code/preprocess/02_protein_preprocess.R")
-  message("[OK]: Protein preprocessing completed!")
+  message("[INFO]: Protein preprocessing completed!")
 }
 
 if (run_taxonomy) {
   message(">>> Taxonomy preprocessing starting...")
   source("code/preprocess/03_taxonomy_preprocess.R")
-  message("[OK]: Taxonomy preprocessing completed!")
+  message("[INFO]: Taxonomy preprocessing completed!")
 }
 
 if (run_functional) {
   message(">>> Functional preprocessing starting...")
   source("code/preprocess/04_functional_preprocess.R")
-  message("[OK]: Functional preprocessing completed!")
+  message("[INFO]: Functional preprocessing completed!")
 }
 
 if (run_metadata) {
   message(">>> Metadata preprocessing starting...")
   source("code/preprocess/05_metadata_preprocess.R")
-  message("[OK]: Metadata preprocessing completed!")
+  message("[INFO]: Metadata preprocessing completed!")
 }
