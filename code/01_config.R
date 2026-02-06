@@ -44,9 +44,9 @@ metadata_filt <- metadata %>% filter(sample_id %in% samples)
 excluded_samples <- setdiff(metadata$sample_id, samples)
 
 if (length(excluded_samples) > 0) {
-  message("Excluded samples (include == NO): ", paste(excluded_samples, collapse = ", "))
+  message("[INFO]: Excluded samples (include == NO): ", paste(excluded_samples, collapse = ", "))
   } else {
-  message("No samples excluded based on 'include' flag")
+  message("[INFO]: No samples excluded based on 'include' flag")
 }
 
 # 2. Filter by condition.
@@ -70,9 +70,9 @@ removed_conditions <- setdiff(conditions_before_filt, conditions_after_filt)
 
 # Message
 if (length(removed_conditions) > 0) {
-  message("Excluded condition: ", exclude_condition)
+  message("[INFO]: Excluded condition: ", exclude_condition)
   } else {
-  message("No condition-level filtering applied")
+  message("[INFO]: No condition-level filtering applied")
 }
 
 samples <- metadata_filt$sample_id
@@ -85,9 +85,9 @@ cond_list <- metadata_filt %>%
   deframe()
 
 # Summary
-message("Configuration summary")
-message("Included samples (n = ", length(samples), ")")
-message("Samples by condition:")
+message("[INFO]: Configuration summary")
+message("[INFO]: Included samples (n = ", length(samples), ")")
+message("[INFO]: Samples by condition:")
 for (cond in names(cond_list)) {
   message(
     "  - ", cond, " (n = ", length(cond_list[[cond]]), "): ",
