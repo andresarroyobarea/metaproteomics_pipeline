@@ -29,7 +29,7 @@ stopifnot(
   all(c("sample_id", "condition", "include") %in% colnames(metadata))
 )
 
-message("Metadata loaded: ", nrow(metadata), " samples")
+log_info(paste0("Metadata loaded: ", nrow(metadata), " samples"))
 
 # -----------------------------
 # Filtering strategy
@@ -44,9 +44,9 @@ metadata_filt <- metadata %>% filter(sample_id %in% samples)
 excluded_samples <- setdiff(metadata$sample_id, samples)
 
 if (length(excluded_samples) > 0) {
-  message("[INFO]: Excluded samples (include == NO): ", paste(excluded_samples, collapse = ", "))
+  log_info(paste0("Excluded samples (include == NO): ", paste(excluded_samples, collapse = ", ")))
   } else {
-  message("[INFO]: No samples excluded based on 'include' flag")
+  log_info("No samples excluded based on 'include' flag")
 }
 
 # 2. Filter by condition.
@@ -54,7 +54,7 @@ if (length(excluded_samples) > 0) {
 # This is intentionally kept minimal.
 # In the future this can be moved to a YAML or CLI argument.
 
-exclude_condition <- "SHIELD" 
+exclude_condition <- "SHIELD"
 
 # Conditions previous filtering
 conditions_before_filt <- unique(metadata_filt$condition)
@@ -70,9 +70,9 @@ removed_conditions <- setdiff(conditions_before_filt, conditions_after_filt)
 
 # Message
 if (length(removed_conditions) > 0) {
-  message("[INFO]: Excluded condition: ", exclude_condition)
+  log_info(paste0("Excluded condition: ", exclude_condition))
   } else {
-  message("[INFO]: No condition-level filtering applied")
+  log_info("No condition-level filtering applied")
 }
 
 samples <- metadata_filt$sample_id
@@ -85,14 +85,14 @@ cond_list <- metadata_filt %>%
   deframe()
 
 # Summary
-message("[INFO]: Configuration summary")
-message("[INFO]: Included samples (n = ", length(samples), ")")
-message("[INFO]: Samples by condition:")
+log_info("Configuration summary")
+log_info(paste0("Included samples (n = ", length(samples), ")"))
+log_info("Samples by condition:")
 for (cond in names(cond_list)) {
-  message(
+  log_info(paste0(
     "  - ", cond, " (n = ", length(cond_list[[cond]]), "): ",
     paste(cond_list[[cond]], collapse = ", ")
-  )
+  ))
 }
 
 

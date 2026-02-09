@@ -42,7 +42,7 @@ filter_samples <- function(
   sample_cols <- grep(sample_pattern, colnames(df), value = TRUE)
   
   if (length(sample_cols) == 0) {
-    stop("No sample variables detected using pattern: ", sample_pattern)
+    log_error(paste0("No sample variables detected using pattern: ", sample_pattern))
   }
   
   # 2. Extract sample_id from colnames.
@@ -62,15 +62,17 @@ filter_samples <- function(
   
   if (verbose) {
     if (length(missing_samples) > 0) {
-      warning(
+      log_warn(paste0(
         "Samples expected but not found in data: ",
         paste(missing_samples, collapse = ",")
       )
+      )
     }
     if (length(dropped_samples) > 0) {
-      message(
+      log_info(paste0(
         "Samples removed from dataset: ",
         paste(dropped_samples, collapse = ",")
+      )
       )
     }
     
@@ -78,7 +80,7 @@ filter_samples <- function(
   
   df_filtered <- df %>% dplyr::select(all_of(c(structural_cols, keep_sample_cols)))
   
-  message("Sample-related columns filtering complete")
+  log_info("Sample-related columns filtering complete")
   
   return(df_filtered)
 }
@@ -192,14 +194,14 @@ validate_metrics <- function(
   available_metrics <- metrics_by_level[[data_level]]
   
   if (is.null(available_metrics)) {
-    stop("Unknown data level: ", data_level)
+    log_error(paste0("Unknown data level: ", data_level))
   }
   
   # 2. Valid metrics requested for an specific level
   metrics_valid <- intersect(metrics_requested, names(available_metrics))
   
   if (length(metrics_valid) == 0) {
-    stop("None of the requested metrics are valid for level: ", data_level)
+    log_error(paste0("None of the requested metrics are valid for level: ", data_level))
   }
   
   # 3. Real checking in the dataset
@@ -213,9 +215,10 @@ validate_metrics <- function(
   
   # 4. Identify metrics not present in the dataset
   if (verbose && length(setdiff(metrics_valid, metrics_present)) > 0) {
-    message(
+    log_info(paste0(
       "Metrics ignored (not present in dataset): ",
       paste(setdiff(metrics_valid, metrics_present), collapse = ",")
+    )
     )
   }
   
@@ -367,7 +370,7 @@ filter_by_min_prevalence <- function(
             col <- paste0(cond, presence_suffix)
             
             if (!col %in% colnames(df)) {
-              stop("Column not found: ", col)
+              log_error(paste0("Column not found: ", col))
             }
             
             df[[col]] >= ceiling(length(cond_list[[cond]]) * min_prop)
@@ -442,7 +445,7 @@ filter_all_nothing <- function(
       # Current condition variable
       cond_col <- paste0(cond, "_feature_prev_", met)
       if (!cond_col %in% colnames(df)) 
-        stop("Column not found: ", cond_col)
+        log_error(paste0("Column not found: ", cond_col))
       
       # Remaining condition/s variable/s
       other_cols <- setdiff(paste0(names(cond_list), "_feature_prev_", met), cond_col)

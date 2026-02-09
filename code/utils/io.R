@@ -46,11 +46,11 @@ read_metap_data <- function(state,
   # 1. Validate inputs
   valid_states <- c("raw", "processed")
   if (!state %in% valid_states){
-    stop(paste0("'state' muste be one of: ", paste(valid_states, collapse = ",")))
+    log_stop(paste0("'state' muste be one of: ", paste(valid_states, collapse = ",")))
   }
   
   valid_levels <- c("peptide", "protein", "taxonomy", "functional")
-  if (!level %in% valid_levels) stop(
+  if (!level %in% valid_levels) log_stop(
     paste0("'level' muste be: ", paste(valid_levels, collapse = ","))
   )
   
@@ -69,7 +69,7 @@ read_metap_data <- function(state,
   path <- here("data", state, run, level, filename)
   
   # Check if file exists
-  if (!file.exists(path)) stop(paste0("Error: File does not exist: ", path))
+  if (!file.exists(path)) log_stop(paste0("File does not exist: ", path))
   
   # --- Read tsv files --- #
   if (verbose) {
@@ -135,11 +135,11 @@ write_metap_data <- function(df,
   
   valid_states <- c("processed")
   if (!state %in% valid_states){
-    stop(paste0("'state' must be processed"))
+    log_stop("'state' must be processed")
   }
   
   valid_levels <- c("peptide", "protein", "taxonomy", "functional")
-  if (!level %in% valid_levels) stop(
+  if (!level %in% valid_levels) log_stop(
     paste0("'level' muste be: ", paste(valid_levels, collapse = ","))
   )
   
@@ -171,13 +171,13 @@ write_metap_data <- function(df,
   path <- file.path(dir_path, filename)
   
   if(file.exists(path) && !overwrite) {
-    stop("File already exists and overwrite = FALSE: ", path)
+    log_stop(paste0("File already exists and overwrite = FALSE: ", path))
   }
   
   # --- Read tsv files --- #
   readr::write_tsv(df, path)
   
-  message(level, " processed file saved in: ", path)
+  log_info(paste0(level, " processed file saved in: ", path))
   
   invisible(path)
 }

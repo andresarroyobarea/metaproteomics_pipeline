@@ -77,11 +77,11 @@ utils_files <- list.files(here("code", "utils"), pattern = "\\.R$", full.names =
 # ----------------------------------
 if (length(utils_files) > 0) {
   for (f in utils_files) {
-    message("[INFO]: Loading utils: ", basename(f))
+    message(format(Sys.time(), "%Y-%m-%d %H:%M:%S"), " [INFO]: Loading utils: ", basename(f))
     source(f)
     }
   } else {
-  warning("[WARNING]: No utils scripts found: project functions unavailable.")
+  warning(format(Sys.time(), "%Y-%m-%d %H:%M:%S"), " [WARNING]: No utils scripts found: project functions unavailable.")
 }
 
 # ----------------------------------

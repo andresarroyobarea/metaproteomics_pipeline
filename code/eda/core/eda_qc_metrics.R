@@ -53,7 +53,7 @@ eda_qc_check <- function(df,
                           verbose = TRUE) {
   
   # 1. Check if dataframe exits
-  if (is.null(df) || nrow(df) == 0) stop("[ERROR]: Empty data frame supplied.")
+  if (is.null(df) || nrow(df) == 0) log_error("Empty data frame supplied.")
   
   # 2. Identify sample columns (feature_id is first)
   sample_cols <- setdiff(colnames(df), "feature_id")
@@ -90,15 +90,15 @@ eda_qc_check <- function(df,
   
   # 2. Verbose reporting.
   if (verbose) {
-    message("=== QC summary ===")
-    message("Metric: ", metric_name)
-    message("\n# Number of features in the dataset:")
+    log_info("=== QC summary ===")
+    log_info(paste0("Metric: ", metric_name))
+    log_info("\n# Number of features in the dataset:")
     print(nrow(df))
-    message("\n# Sample statistics:")
+    log_info("\n# Sample statistics:")
     print(stats_per_sample)
   }
   
   if (any(stats_per_sample$NAs_per > 50) | any(stats_per_sample$zeros_perc > 50)) {
-    warning("[WARNING]: More than 50% features in some samples.")
+    log_warn("More than 50% features in some samples.")
   }
 }

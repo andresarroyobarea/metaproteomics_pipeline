@@ -107,10 +107,10 @@ get_eda_data <- function(
   # 1. Select biological level dataframe
   df <- feature_data_list[[biological_level]]
   if(is.null(df)) {
-    stop("[ERROR]: Biological level not found '", biological_level, "'")
+    log_error(paste0("Biological level not found '", biological_level, "'"))
   }
   
-  if (eda_verbose) message("[INFO]: Starting EDA data preparation: Level = ", biological_level, "; Metric = ", metric_name)
+  if (eda_verbose) log_info(paste0("Starting EDA data preparation: Level = ", biological_level, "; Metric = ", metric_name))
   
   # 2. Apply feature filter subset if provided
   df <- apply_feature_filtering(df, filter_subset = filter_subset, verbose = eda_verbose)
@@ -130,11 +130,11 @@ get_eda_data <- function(
 
   # 5. Final checks
   if (nrow(df) == 0) {
-    stop("[ERROR] No features were retrieved.")
+    log_error("No features were retrieved.")
   }
   
   if (ncol(df) == 0) {
-    stop("[ERROR] Samples/metrics were not properly retrieved")
+    log_error("Samples/metrics were not properly retrieved")
   }
   
   return(df)
@@ -186,17 +186,17 @@ apply_feature_filtering <- function(
   
   # 1. If no filter requested, return data as-is.
   if (is.null(filter_subset)) {
-    if (verbose) message("[INFO]: No feature filtering applied")
+    if (verbose) log_info("No feature filtering applied")
     return(df)
     }
   
   # 2. Check if filter_subset exits as a colum
   if (!filter_subset %in% colnames(df)) {
-    stop("[ERROR]: Filter subset not found in data: ", filter_subset)
+    log_error(paste0("Filter subset not found in data: ", filter_subset))
     }
   
   if (verbose) {
-    message("[INFO]: Applying filter subset: ", filter_subset, " selected")
+    log_info(paste0("Applying filter subset: ", filter_subset, " selected"))
   }
   
   # 4. Apply filter
@@ -205,8 +205,8 @@ apply_feature_filtering <- function(
   # Filter sample in case it was selected in eda config.
   # al mismo tiempo que se extraen las muestras?
   if (verbose) {
-    message("[INFO]: Filtering completed: ", 
-            nrow(df_filtered), " / ", nrow(df), " features retained.")
+    log_info(paste0("Filtering completed: ", 
+            nrow(df_filtered), " / ", nrow(df), " features retained."))
   } 
   
   return(df_filtered)
@@ -272,22 +272,25 @@ apply_metric_selection <- function(
   
   # 1.1 A proteomic metric must be supplied.
   if (is.null(metric_key)) {
-    if (verbose) stop("[ERROR]: Any proteomic metric must be supplied.")
+    if (verbose) log_error("Any proteomic metric must be supplied.")
   }
   
   # 1.2. Check available metrics at this biological level.
   available_metrics <- eda_metrics[[biological_level]]
   
   if (!metric_key %in% eda_metrics[[biological_level]]) {
-    stop(
-      "[ERROR]: Metric '", metric_key,
+    log_error(paste0(
+      "Metric '", metric_key,
       "' not available for level '", biological_level,
-      "'. Available: ", paste(available_metrics, collapse = ", "))
+      "'. Available: ", paste(available_metrics, collapse = ", ")
+      )
+    )
   }
   
   if (verbose) {
-    message(
-      "[INFO]: Selecting metrics: ", metric_key
+    log_info(paste0(
+      "Selecting metrics: ", metric_key
+    )
     )
   }
   
@@ -299,12 +302,15 @@ apply_metric_selection <- function(
   
   # 3. Final checking
   if (ncol(df_metric) == 1) {
-    stop("[ERROR]: No columns found for metric: ", metric_key)
+    log_error(paste0("No columns found for metric: ", metric_key))
   }
   
   if (verbose) {
-    message("[INFO]: Metric selection completed (", 
+    log_info(
+      paste0(
+      "Metric selection completed (", 
             ncol(df_metric) - 1, " samples)")
+    )
   } 
   
   return(df_metric)
@@ -402,26 +408,26 @@ apply_data_transform <- function(
   
   # 1. Check if a data frame exits
   if (is.null(df)) {
-    if (verbose) stop("[ERROR]: Data frame not found.")
+    if (verbose) log_error("Data frame not found.")
     return(df)
   }
   
   # 2. Check if transformation option is available.
   if (!transform_mode %in% eda_data_options$transform_mode) {
-    stop("[ERROR]: Transformation ", transform_mode, " not found. Avaliable options are ",  
-         paste(eda_data_options$transform_mode, collapse = ", "))
+    log_error(paste0("Transformation ", transform_mode, " not found. Avaliable options are ",  
+         paste(eda_data_options$transform_mode, collapse = ", ")))
   }
 
   # 3. No transformation.
   if (transform_mode == "raw") {
-    if (verbose) message("[INFO]: No transformation applied.")
+    if (verbose) log_info("No transformation applied.")
     return(df)
   }
   
   # 4. Apply absence/presence matrix
   if (transform_mode == "detection") {
     df <- df %>% mutate(across(-feature_id, ~ ifelse(. > 0, 1, 0)))
-    if (verbose) message("[INFO]: Data was converted into absence/presence.")
+    if (verbose) log_info("Data was converted into absence/presence.")
     return(df)
   }
   
@@ -489,35 +495,40 @@ apply_zero_handling <- function(df, strategy = "keep", pseudocount = 0.1) {
   
   # 1. Check if initial zero handling strategy option is available.
   if (!strategy %in% eda_data_options$zero_strategy) {
-    stop("[ERROR]: Initial zero handling strategy ", strategy, " not found. Available options are ", 
+    log_error(
+      paste0(
+      "Initial zero handling strategy ", strategy, " not found. Available options are ", 
          paste(eda_data_options$zero_strategy, collapse = ", "))
+    )
   }
 
   # 2. Initial zero handling options
   # 2.1 Not change
   if (strategy == "keep") {
-    message("[INFO]: Zeros were ketp as zeros.")
+    log_info("Zeros were ketp as zeros.")
     return(df)
   }
   
   # 2.2 Change 0 to NA
   if (strategy == "na") {
     df <- df %>% mutate(across(matches("^ID_\\d+_"), ~ ifelse(. == 0, NA, .)))
-    message("[INFO]: Zeros were turned into NA previous log transformation.")
+    log_info("Zeros were turned into NA previous log transformation.")
     return(df)
   }
   
   # 2.3 Add pseudocount if needed
   if (strategy == "pseudocount") {
     if (pseudocount < 0) {
-      stop("[ERROR]: A negative pseudocount is not possible.")
+      log_error("A negative pseudocount is not possible.")
     }
     if (!pseudocount %in% eda_data_options$pseudocount) {
-      warning("[WARNING]: Common pseudocount optios are ", 
-              paste0(eda_data_options$pseudocount, collapse = ","))
+      log_warn(
+        paste0(
+        "Common pseudocount optios are ", 
+              paste0(eda_data_options$pseudocount, collapse = ",")))
     }
   # TODO: Add different zero count strategy for intensities and spectral counts.
-    message(paste0("[INFO]: A pseudocount of ", pseudocount,  "was added previous log transformation."))
+    log_info(paste0("A pseudocount of ", pseudocount,  "was added previous log transformation."))
     df <- df %>% mutate(across(matches("^ID_\\d+_"), ~ . + pseudocount))
     return(df)
   }
@@ -563,32 +574,35 @@ apply_log_transform <- function(df, log_transform = "none") {
   
   # 1. Check if log transform option is available.
   if (!log_transform %in% eda_data_options$log_transform) {
-    stop("[ERROR]: Log transformation ", log_transform, " not found. Available options are ", 
+    log_error(
+      paste0(
+      "Log transformation ", log_transform, " not found. Available options are ", 
          paste(eda_data_options$log_transform, collapse = ", "))
+    )
   }
   
   # 2. Log transformations
   # 2.1 No transformation
   if (log_transform == "none") {
-    message("[INFO]: NO log transformation was applied.")
+    log_info("NO log transformation was applied.")
     return(df)
   }
   
   if ((log_transform == "log2" | log_transform == "log10") & any(df == 0,na.rm = T)) {
-    message("[WARNING]: Log transformation will be applied over 0: Inf values were returned.")
+    log_info("Log transformation will be applied over 0: Inf values were returned.")
   }
   
   # 2.2 Log2 transformation  
   if (log_transform == "log2") {
     df <- df %>% mutate(across(matches("^ID_\\d+_"), ~ log2(.)))
-    message("[INFO]: Log2 transformation was applied.")
+    log_info("Log2 transformation was applied.")
     return(df)
     }
     
   # 2.3 Log10 transformation
   if (log_transform == "log10") {
     df <- df %>% dplyr::mutate(across(matches("^ID_\\d+_"), ~ log10(.)))
-    message("[INFO]: Log10 transformation was applied.")
+    log_info("Log10 transformation was applied.")
     return(df)
   }
   
@@ -635,25 +649,28 @@ apply_normalization <- function(df, norm_mode = "median") {
   
   # 1. Check if normalization option is available.
   if (!norm_mode %in% eda_data_options$normalization) {
-    stop("[ERROR]: Normalization  ", norm_mode, " not found. Available options are ", 
+    log_error(
+      paste0(
+      "Normalization  ", norm_mode, " not found. Available options are ", 
          paste(eda_data_options$normalization, collapse = ", "))
+    )
   }
   
   # 2. Normalization options.
   # 2.1 No Normalization
   if (norm_mode == "none"){
-    message("[INFO]: NO normalization was applied.")
+    log_info("NO normalization was applied.")
     return(df)
   }
   
   if (any(df == -Inf | df == Inf, na.rm = T)) {
-    stop("[ERROR]: numeric columns contain Inf or -Inf. This usually happens if you log-transformed zeros. Replace zeros with a small value or NA before normalizing.")
+    log_error("numeric columns contain Inf or -Inf. This usually happens if you log-transformed zeros. Replace zeros with a small value or NA before normalizing.")
   }
   
   # 2.2 Column-wise median centering normalization.
   if (norm_mode == "median"){
     df_norm <- df %>% dplyr::mutate(across(matches("^ID_\\d+_"), ~ . - median(., na.rm = TRUE)))
-    message("[INFO]: Median normalization was applied.")
+    log_info("Median normalization was applied.")
     return(df_norm)
   }
 }
@@ -698,21 +715,24 @@ apply_post_zero_handling <- function(df, strategy = "keep"){
   
   # 1. Check if post zero handling strategy is available.
   if (!strategy %in% eda_data_options$post_zero_strategy) {
-    stop("[ERROR]: Post-zero handling strategy  ", strategy, " not found. Available options are ", 
+    log_error(
+      paste0(
+      "Post-zero handling strategy  ", strategy, " not found. Available options are ", 
          paste(eda_data_options$post_zero_strategy, collapse = ", "))
+    )
   }
   
   # 2. Post-zero handling strategy options
   # 2.1 Zeros retained
   if (strategy == "keep") {
-    message("[INFO]: NO post-zero handling after normalization.")
+    log_info("NO post-zero handling after normalization.")
     return(df) 
   }
   
   # 2.2 NA -> ZERO
   if (strategy == "zero" & any(is.na(df))) {
     df <- df %>% mutate(across(matches("^ID_\\d+_"), ~ ifelse(is.na(.), 0, .)))
-    message("[INFO]: NAs were turned into zeros")
+    log_info("NAs were turned into zeros")
     return(df)
   }
 

@@ -6,39 +6,39 @@
 #       Purpose: Generate a pipeline to orchestrate the whole metaprotemomics 
 #       prepocessing process.
 # --------------------------------------------------------------------------------------------------------
-message("=== Starting preprocessing pipeline ===")
+log_info("=== Starting preprocessing pipeline ===")
 
 if (run_peptide) {
-  message(">>> Peptide preprocessing starting...")
+  log_info(">>> Peptide preprocessing starting...")
   source("code/preprocess/01_peptide_preprocess.R")
-  message("[INFO]: Peptide preprocessing completed!")
+  log_info("Peptide preprocessing completed!")
 }
 
 if (run_protein) {
-  message(">>> Protein preprocessing starting...")
+  log_info(">>> Protein preprocessing starting...")
   source("code/preprocess/02_protein_preprocess.R")
-  message("[INFO]: Protein preprocessing completed!")
+  log_info("Protein preprocessing completed!")
 }
 
 if (run_taxonomy) {
-  message(">>> Taxonomy preprocessing starting...")
+  log_info(">>> Taxonomy preprocessing starting...")
   source("code/preprocess/03_taxonomy_preprocess.R")
-  message("[INFO]: Taxonomy preprocessing completed!")
+  log_info("Taxonomy preprocessing completed!")
 }
 
 if (run_functional) {
-  message(">>> Functional preprocessing starting...")
+  log_info(">>> Functional preprocessing starting...")
   source("code/preprocess/04_functional_preprocess.R")
-  message("[INFO]: Functional preprocessing completed!")
+  log_info("Functional preprocessing completed!")
 }
 
 if (run_metadata) {
-  message(">>> Metadata preprocessing starting...")
+  log_info(">>> Metadata preprocessing starting...")
   source("code/preprocess/05_metadata_preprocess.R")
-  message("[INFO]: Metadata preprocessing completed!")
+  log_info("Metadata preprocessing completed!")
 }
 
-message(">>> Building feature data list...")
+log_info(">>> Building feature data list...")
 
 metap_feature_data <- list()
 
@@ -59,11 +59,11 @@ if (run_functional) {
 }
 
 if (length(metap_feature_data) == 0) {
-  stop("[ERROR]: No feature table processed at any level")
+  log_error("No feature table processed at any level")
 }
 
-message("[INFO]: Feature data list built.")
-message(sprintf("[INFO]: Biological veles available: %s",
+log_info("Feature data list built.")
+log_info(sprintf("Biological veles available: %s",
                 paste(names(metap_feature_data), collapse = ",")))
 
-message("[INFO]: Preprocessing finished.")
+log_info("Preprocessing finished.")
