@@ -54,8 +54,7 @@ path_data_processed <- here("data", "processed", current_run)
 path_metadata       <- here("metadata", current_run)
 path_metadata_processed       <- here("results", current_run)
 metadata_file       <- "metaproteomics_MM_metadata.csv"
-path_results        <- here("results", current_run)
-
+path_results_eda        <- here("results", current_run, "eda")
 
 # -----------------------------
 # 4. Metadata filtering rules
