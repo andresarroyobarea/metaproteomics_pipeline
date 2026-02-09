@@ -577,8 +577,6 @@ build_sets <- function(df, set_defs) {
 #'
 #' @export
 #' # --------------------------------------------------------------------------------------------------------
-
-
 count_peptides_per_proteins <- function(
     peptides_df,
     peptide_flag,
@@ -594,3 +592,57 @@ count_peptides_per_proteins <- function(
 }
 
 
+# --------------------------------------------------------------------------------------------------------
+#' Save a ggplot object to disk optionally.
+#' 
+#' @description
+#' This helper function wraps the process of saving a ggplot object to a specified
+#' directory, creating it recursively if it does not exist. It supports a flag 
+#' `save_plots` to enable/disable saving, making it ideal for previewing plots
+#' during development or batch runs without writing files.
+#' 
+#' @param plot_obj ggplot
+#'  The ggplot object to save
+#'  
+#' @param plot_name character
+#'  The filename (without extension) to save the plot as.
+#'
+#' @param type_dir character
+#'  The directory path where the plot should be saved. Will be created recursively
+#'  if it does not exist.
+#' 
+#' @param save_plots logical
+#'  Flag to control whether the plot is actually saved. Useful for previewing 
+#'  plots in pipelines writing files. 
+#'
+#' @return ggplot
+#'  Return the same ggplot2 invisibly, allowing it to be used in list or further
+#'  manipulations.
+#'
+#' @details
+#' The function ensures reproducibility in pipelines by:
+#' - Creating output directories if missing (`recursive = TRUE`)
+#' - Standardizing file naming (`.png`)
+#' - Providing width and height defaults suitable for publication-quality figures
+#'
+#' @examples
+#' p <- ggplot(mtcars, aes(mpg, hp)) + geom_point()
+#' plot_and_save(p, "mtcars_scatter", "/tmp/plots", save_plots = TRUE)
+#'
+#' @export
+# --------------------------------------------------------------------------------------------------------
+plot_and_save <- function(plot_obj, plot_name, type_dir, save_plots) {
+  
+  if (save_plots) {
+    dir.create(type_dir, showWarnings = FALSE, recursive = TRUE)
+    
+    ggsave(
+      filename = file.path(type_dir, paste0(plot_name, ".png")),
+      plot = plot_obj,
+      width = 12,
+      height = 10
+    )
+  }
+  
+  return(plot_obj)
+}
