@@ -646,3 +646,98 @@ plot_and_save <- function(plot_obj, plot_name, type_dir, save_plots) {
   
   return(plot_obj)
 }
+
+
+# --------------------------------------------------------------------------------------------------------
+#' Create a grid of parameters for feature-centric EDA
+#' 
+#' @description
+#'  This function generates a comprehensive grid of parameters to systematically
+#'  perform Exploratory Data Analysis (EDA) across multiple biological levels,
+#'  metrics, subsets, and transformation modes. It is designed to automate and
+#'  standardize EDA at feature level.
+#'  Each row of the resulting tibble represents a unique combination of:
+#'    - Biological level (e.g., peptide, protein, functional, taxonomy)
+#'    - Metric (e.g., intensity, spectral count)
+#'    - Subset of features (e.g., core proteins)
+#'    - Transformation mode (e.g., log2, log10, median_norm)
+#' 
+#'  This design decouples the definitions of biological levels, metrics, and
+#'  preprocessing steps from the execution of EDA, enabling flexible, reproducible,
+#'  and scalable analyses.
+#'  
+#' @param feature_data_list list
+#'   A named list of feature-level datasets, where names correspond to biological levels.
+#' 
+#' @param eda_metrics_user list
+#'   Named list defining the metrics to analyze per biological level. For example:
+#'   ```r
+#'   list(
+#'     peptide = c(intensity = "intensity", spc = "spectral_count"),
+#'     protein = c(intensity = "intensity")
+#'   )
+#'   ````
+#' @param eda_transform_modes list
+#'   Named list of transformation modes to apply during EDA (e.g., log2, log10),
+#'   where each entry is a list of parameters defining the mode.
+#'   
+#' @param eda_levels character
+#'   Character vector defining the "level" of EDA. Options: feature, sample or condition.
+#'   
+#' @param eda_feature_subset list
+#'   Named list defining subsets of features to include per biological level. For exmample:
+#'   ```r
+#'   list(
+#'     peptide = c(intensity = "intensity", spc = "spectral_count"),
+#'     protein = c(intensity = "intensity")
+#'   )
+#'   ````
+#'   
+#' @param eda_modes_filter character or NULL
+#'   Optional vector specifying a subset of transformation mode names to keep.
+#'   If NULL (default), all modes in `eda_transform_modes` are used.  
+#'   
+#' @return tibble
+#'   A tibble where each row corresponds to a unique combination of:
+#'   `eda_level`, `biological_level`, `metric`, `subset`, `eda_transform_mode_name`,
+#'   and `eda_transform_modes` (list-column containing the parameters for each mode).
+#' 
+#' @examples
+#' create_eda_grid(
+#'   feature_data_list = metap_feature_data,
+#'   eda_metrics_user = list(protein = c(intensity = "intensity")),
+#'   eda_transform_modes = list(log2 = list(log_base = 2)),
+#'   eda_feature_subset = list(protein = "proteins_core")
+#' )
+#' 
+#' @export
+# --------------------------------------------------------------------------------------------------------
+create_eda_grid <- function(
+    feature_data_list,
+    eda_metrics_user,
+    eda_transform_modes,
+    eda_levels = c("feature"),
+    eda_feature_subset,      # ahora viene desde config
+    eda_modes_filter = NULL
+) {
+  
+  # filtrar modos si se especifica
+  if (!is.null(eda_modes_filter)) {
+    eda_transform_modes <- eda_transform_modes[eda_modes_filter]
+  }
+  
+  purrr::imap_dfr(eda_metrics_user, function(metrics, level) {
+    subsets <- eda_feature_subset[[level]]
+    
+    tidyr::expand_grid(
+      eda_level        = eda_levels,
+      biological_level = level,
+      metric           = unname(metrics),
+      subset           = subsets,
+      eda_transform_mode_name    = names(eda_transform_modes)
+    )
+  }) %>%
+    dplyr::mutate(
+      eda_transform_modes = purrr::map(eda_transform_mode_name, ~ eda_transform_modes[[.x]])
+    )
+}
