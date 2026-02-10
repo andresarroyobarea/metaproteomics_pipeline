@@ -80,6 +80,50 @@ eda_data_options <- list(
   post_zero_strategy = c("keep", "zero")
 )
 
+# EDA transformations.
+eda_transform_modes <- list(
+  
+  detection = list(
+    transform_mode = "detection"
+  ),
+  
+  log2  = list(
+    transform_mode = "quantitative",
+    zero_strategy   = "na",
+    log_transform = "log2",
+    normalization = "none",
+    post_zero_strategy = "keep"
+  ),
+  
+  median_norm_zero = list(
+    transform_mode = "quantitative",
+    zero_strategy   = "na",
+    log_transform = "log2",
+    normalization = "median",
+    post_zero_strategy = "zero"
+  ),
+  
+  median_norm_na = list(
+    transform_mode = "quantitative",
+    zero_strategy   = "na",
+    log_transform = "log2",
+    normalization = "median",
+    post_zero_strategy = "keep"
+  )
+)
+
+# EDA feature subsetting.
+eda_feature_subset <- list(
+  
+  peptide = c("peptides_core"),
+  
+  protein = c("proteins_core"),
+  
+  functional = c("proteins_core"),
+  
+  taxonomy = c("taxa_core")
+)
+
 # -------------------------------------------
 # 5. Subset options
 # -------------------------------------------
@@ -136,4 +180,3 @@ eda_verbose <- TRUE   # if TRUE, scripts will print messages about subsets, metr
 # --------------------------------------------------------------------------------------------------------
 # End of eda_config.R
 # --------------------------------------------------------------------------------------------------------
-
