@@ -27,7 +27,7 @@ run_eda_feature_centric <- function(
     eda_grid,
     enable_facet_sample = TRUE,
     enable_facet_condition = TRUE,
-    conditions_vars = NULL, # TODO: ADD groupping by different conditions variables. It should be defined in the config file.
+    condition_vars = condition_vars, 
     save_plots = TRUE,
     path_results_eda,
     verbose = eda_verbose) {
@@ -85,20 +85,25 @@ run_eda_feature_centric <- function(
       
       plots <- list()
       
-      # First example
+      # Plot abundance distribution
       plots$abundance_distribution <- plot_abundance_distribution(
         data_long = data_long,
+        biological_level = biological_level,
+        metric = metric,
         log_base = eda_transform_mode_name,
         group_by_sample = enable_facet_sample,
         group_by_condition = enable_facet_condition,
-        condition_var = "condition", # TODO: Importante porque podríamos tener varias comparaciones -> CONFIG
+        condition_var = condition_vars, 
         plot_feature_means = T,
         path_results_eda = path_results_eda,
         save_plots = save_plots,
         verbose = verbose
       )
       
-      eda_feature_centric_res[[biological_level]][[metric]][[subset]][[eda_transform_mode_name]] <<- plots # Aquí meter condición también.
+      # ADD PLOT FEATURE DOMINANCE.
+      
+      
+      eda_feature_centric_res[[biological_level]][[metric]][[subset]][[eda_transform_mode_name]] <<- plots 
     }
     )
   return(eda_feature_centric_res)
@@ -112,9 +117,7 @@ run_eda_feature_centric <- function(
 # Tipo de procesamiento para cada momento.
 
 # TODO: Think about tables only one time and then iterate over them. 
-# TODO: Add diferent condition options.
-# TODO: Change yaxis metric naming
-
+# TODO: Test different conditions.
 
 # PRUEBA:
 res <- run_eda_feature_centric(
@@ -122,11 +125,10 @@ res <- run_eda_feature_centric(
     metadata_filt,
     feature_metadata = NULL,
     eda_grid_prueba,
-    enable_facet_sample = F,
-    enable_facet_condition = F,
-    conditions_vars = NULL, # TODO: ADD groupping by different conditions variables. It should be defined in the config file.
-    save_plots = F,
-    path_results_eda = NULL,
+    enable_facet_sample = T,
+    enable_facet_condition = T,
+    condition_vars = condition_vars, # TODO: ADD groupping by different conditions variables. It should be defined in the config file.
+    save_plots = T,
+    path_results_eda = path_results_eda,
     verbose = eda_verbose)
 
-res$taxonomy$intensity$taxa_core$log2$abundance_distribution$feature_means
