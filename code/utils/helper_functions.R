@@ -741,3 +741,75 @@ create_eda_grid <- function(
       eda_transform_modes = purrr::map(eda_transform_mode_name, ~ eda_transform_modes[[.x]])
     )
 }
+
+# --------------------------------------------------------------------------------------------------------
+#' Aggregate proteomics metrics according to covariates
+#' 
+#' 
+#' 
+#' 
+get_agg_fun <- function(aggregation = c("mean", "median")) {
+  aggregation <- match.arg(aggregation)
+  switch (
+    aggregation,
+    mean = function(x) mean(x, na.rm = TRUE),
+    median = function(x) median(x, na.rm = TRUE)
+  )
+}
+
+# --------------------------------------------------------------------------------------------------------
+#' Aggregate feature abundance data
+#' 
+#' 
+#' 
+#' 
+aggregate_feature_abundance <- function(
+    data_long, 
+    group_level = c("feature", "sample", "condition"),
+    agg_fun = mean,
+    feature_col = "feature_id",
+    sample_col = "sample_id",
+    condition_col = "condition",
+    cumm_abundance = TRUE) {
+  
+  
+  group_level <- match.arg(group_level)
+  
+  # 1. Define groupping variables
+  group_vars <- switch(group_level,
+                       feature = feature_col,
+                       sample = c(feature_col, sample_col),
+                       condition = c(feature_col, condition_col)
+                       )
+    
+  # 2. Determine if apply aggregation
+  use_agg <- group_level %in% c("feature", "condition") 
+  
+  # 3. Data aggregation
+  agg_data <- data_long %>%
+    dplyr::group_by(dplyr::across(all_of(group_vars))) %>%
+    dplyr::summarise(abundance = if (use_agg) agg_fun(value) else value, .groups = "drop")
+  
+  # 4. Order and ranking data
+  agg_data <- agg_data %>%
+    dplyr::group_by(dplyr::across(all_of(setdiff(group_vars, feature_col)))) %>%
+    dplyr::arrange(desc(abundance)) %>%
+    dplyr::mutate(rank = row_number()) %>%
+    dplyr::ungroup()
+  
+  # 5. Calculate cummulative abundance if needed.
+  if (cumm_abundance ) {
+    agg_data <- agg_data %>%
+      dplyr::group_by(dplyr::across(all_of(setdiff(group_vars, feature_col)))) %>%
+      dplyr::mutate(cum_abundance = cumsum(abundance) / sum(abundance) * 100) %>%
+      dplyr::ungroup()
+  }
+    
+    return(agg_data)
+}
+
+
+
+
+
+

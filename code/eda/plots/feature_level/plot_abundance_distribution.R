@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------------------------
-# Script: 01_feature_level_distribution.R
+# Script: plot_abundance_distribution.R
 # Description: Ditribution of global features after log transformation.
 # Author: Andrés Arroyo Barea
 # Date: 2026-02-09
