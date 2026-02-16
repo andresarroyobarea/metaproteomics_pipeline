@@ -34,7 +34,7 @@ pacman::p_load(
   # Data visualization
   ggplot2, ggpubr, ggrepel, ggalt, ggdist, gghalves, gplots, ComplexHeatmap,  
   paletteer, RColorBrewer, scales, gridExtra, VennDiagram, shape, ggsci, patchwork, 
-  ggstatsplot, ggVennDiagram,
+  ggstatsplot, ggVennDiagram, paleteer,
   
   # Reports
   gtsummary

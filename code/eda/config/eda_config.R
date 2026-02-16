@@ -124,6 +124,11 @@ eda_feature_subset <- list(
   taxonomy = c("taxa_core")
 )
 
+# EDA conditions to assess. 
+# This vector should include all condition groups that should be used for groupping graphs.
+condition_vars <- c("condition")
+
+
 # -------------------------------------------
 # 5. Subset options
 # -------------------------------------------
