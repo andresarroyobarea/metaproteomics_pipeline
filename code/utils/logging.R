@@ -7,18 +7,18 @@
 # --------------------------------------------------------------------------------------------------------
 log_info <- function(msg) {
   timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
-  msg_eval <- glue::glue(msg)
+  msg_eval <- glue::glue(msg, .envir = parent.frame())
   message(sprintf("[%s] [INFO] %s", timestamp, msg_eval))
 }
 
 log_warn <- function(msg) {
   timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
-  msg_eval <- glue::glue(msg)
+  msg_eval <- glue::glue(msg, .envir = parent.frame())
   warning(sprintf("[%s] [WARN]: %s", timestamp, msg_eval), call. = FALSE)
 }
 
 log_error <- function(msg) {
   timestamp <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
-  msg_eval <- glue::glue(msg) <- glue::glue(msg)
+  msg_eval <- glue::glue(msg, .envir = parent.frame())
   stop(sprintf("[%s] [ERROR]: %s", timestamp, msg_eval), call. = FALSE)
 }
