@@ -57,7 +57,35 @@ taxonomy_processed <- taxonomy_processed %>%
     feature_id = paste0("taxa_", row_number()),
     .before = name
 ) %>%
-  mutate(across(superkingdom:species, ~replace_na(., tax_miss_pref)))
+  dplyr::mutate(across(superkingdom:species, ~replace_na(., tax_miss_pref))) %>%
+  
+  # Unclassified taxonomy preprocessing
+  # Identify last known taxonomyc level (it is not always the same as 'name' variable - LCA)
+  dplyr::mutate(
+    last_known = superkingdom, 
+    last_known = if_else(kingdom != "Unclassified", kingdom, last_known),
+    last_known = if_else(phylum != "Unclassified", phylum, last_known),
+    last_known = if_else(class != "Unclassified", class, last_known),
+    last_known = if_else(order != "Unclassified", order, last_known),
+    last_known = if_else(family != "Unclassified", family, last_known),
+    last_known = if_else(genus != "Unclassified", genus, last_known),
+    last_known = if_else(species != "Unclassified", species, last_known)
+  , .after = species) %>% 
+
+  # Replace Unclassified levels.
+  dplyr::mutate(
+    kingdom = if_else(kingdom == "Unclassified", paste0(superkingdom, "_unclassified"), kingdom),
+    phylum = if_else(phylum == "Unclassified", paste0(last_known, "_unclassified"), phylum),
+    class = if_else(class == "Unclassified", paste0(last_known, "_unclassified"), class),
+    order = if_else(order == "Unclassified", paste0(last_known, "_unclassified"), order),
+    family = if_else(family == "Unclassified", paste0(last_known, "_unclassified"), family),
+    genus = if_else(genus == "Unclassified", paste0(last_known, "_unclassified"), genus),
+    species = if_else(species == "Unclassified", paste0(last_known, "_unclassified"), species)
+  ) %>% 
+  
+  # Remove last known variable.
+  dplyr::select(-last_known) 
+
 
 # -----------------------------
 # 6. Intensity-derived metrics
@@ -120,23 +148,21 @@ taxonomy_processed <- taxonomy_processed %>%
     
     # Taxonomic level classification flags
     # Flags por nivel taxonómico
-    is_phylum_classified  = phylum  != "Unclassified",
-    is_class_classified   = class   != "Unclassified",
-    is_order_classified   = order   != "Unclassified",
-    is_family_classified  = family  != "Unclassified",
-    is_genus_classified   = genus   != "Unclassified",
-    is_species_classified = species != "Unclassified",
+    is_phylum_classified  = !grepl("unclassified", phylum),
+    is_class_classified   = !grepl("unclassified", class),
+    is_order_classified   = !grepl("unclassified", order),
+    is_family_classified  = !grepl("unclassified", family),
+    is_genus_classified   = !grepl("unclassified", genus),
+    is_species_classified = !grepl("unclassified", species),
     
     # General classification flag: From phylum to species
-    is_any_tax_level_classified = phylum  != "Unclassified" |
-      class   != "Unclassified" |
-      order   != "Unclassified" |
-      family  != "Unclassified" |
-      genus   != "Unclassified" |
-      species != "Unclassified"
+    is_any_tax_level_classified = !grepl("unclassified", phylum) |
+      !grepl("unclassified", class) |
+      !grepl("unclassified", order) |
+      !grepl("unclassified", family) |
+      !grepl("unclassified", genus) |
+      !grepl("unclassified", genus)
   )
-
-
 
 
 # -----------------------------
