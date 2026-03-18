@@ -14,7 +14,6 @@
 # -----------------------------
 proteins <- read_metap_data("raw", current_run, "protein")
 
-
 # -----------------------------
 # 2. Clean names
 # -----------------------------
@@ -104,29 +103,16 @@ proteins_processed <- proteins_processed %>%
 # 8. Peptide-derived protein metrics
 # ---------------------------------------
 
-# Number of unique peptides (relaxed criteria) by protein
-pep_to_prot_relaxed <- count_peptides_per_proteins(
+# Number of unique peptides by protein
+pep_prot_sum <- count_peptides_per_proteins(
   peptides_processed,
-  peptide_flag = "peptides_core_relaxed",
-  out_var = "n_unique_peptides_relaxed"
-)
-
-# Number of unique peptides (strict criteria with prev) by protein
-pep_to_prot_strict <- count_peptides_per_proteins(
-  peptides_processed,
-  peptide_flag = "peptides_core",
-  out_var = "n_unique_peptides_strict"
+  peptide_flag = "unique_peptide",
+  out_var = "n_unique_peptides"
 )
 
 # Add peptide-level information to protein processed data.
 proteins_processed <- proteins_processed %>%
-  left_join(pep_to_prot_relaxed, by = "protein") %>%
-  left_join(pep_to_prot_strict, by = "protein") %>%
-  mutate(
-    n_unique_peptides_relaxed = replace_na(n_unique_peptides_relaxed, 0),
-    n_unique_peptides_strict = replace_na(n_unique_peptides_strict, 0)
-  )
-
+  left_join(pep_prot_sum, by = "protein")
 
 # -----------------------------
 # 9. Atomic flags.
@@ -141,7 +127,7 @@ proteins_processed <- proteins_processed %>%
     keep_min_prev = feature_min_prev_intens,
     keep_comb_uniq_spc = combined_unique_spectral_count > 0,
     keep_comb_total_peptides = combined_total_peptides >= 2,
-    keep_n_unique_peptides = n_unique_peptides_relaxed >= 1,
+    keep_n_unique_peptides = n_unique_peptides >= 1,
     keep_all_nothing_NDMM = NDMM_all_nothing_intens,
     keep_all_nothing_RRMM = RRMM_all_nothing_intens,
   ) %>%
