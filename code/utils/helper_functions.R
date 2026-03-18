@@ -585,8 +585,8 @@ count_peptides_per_proteins <- function(
   
   # Summarize the information.
   peptides_df_agg <- peptides_df %>%
-    dplyr::filter(.data[[peptide_flag]]) %>%
-    dplyr::count(.data[[protein_var]], name = out_var)
+    dplyr::group_by(.data[[protein_var]]) %>%
+    dplyr::summarise(!!out_var := sum(.data[[peptide_flag]], na.rm = T))
   
   return(peptides_df_agg)  
 }
